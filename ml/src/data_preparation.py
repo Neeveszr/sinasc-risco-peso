@@ -14,6 +14,32 @@ CAMINHO_DADOS = (
 # Definição do limite de baixo peso
 LIMITE_BAIXO_PESO = 2500
 
+# Atributos categóricos selecionados
+COLUNAS_CATEGORICAS = [
+    "FxEtPartur",
+    "ESTCIVMAE",
+    "ESCMAE2010",
+    "GRAVIDEZ"
+]
+
+# Atributos numéricos selecionados
+COLUNAS_NUMERICAS = [
+    "QTDGESTANT",
+    "QTDPARTNOR",
+    "QTDPARTCES",
+    "QTDFILVIVO",
+    "QTDFILMORT",
+    "MESPRENAT"
+]
+
+# Lista completa dos atributos preditores
+COLUNAS_PREDITORAS = (
+    COLUNAS_CATEGORICAS + COLUNAS_NUMERICAS
+)
+
+# Nome da variável-alvo
+COLUNA_ALVO = "baixo_peso"
+
 
 def carregar_dados():
     """Carrega a base original do SINASC."""
@@ -53,6 +79,45 @@ def criar_variavel_alvo(df):
 
     return df
 
+def separar_atributos_alvo(df):
+    """Separa os atributos preditores da variável-alvo."""
+
+    # Verificar se todas as colunas necessárias existem
+    colunas_necessarias = COLUNAS_PREDITORAS + [COLUNA_ALVO]
+
+    colunas_faltantes = [
+        coluna for coluna in colunas_necessarias
+        if coluna not in df.columns
+    ]
+
+    if colunas_faltantes:
+        raise ValueError(
+            f"Colunas ausentes: {colunas_faltantes}"
+        )
+
+    # Selecionar somente os atributos permitidos
+    X = df[COLUNAS_PREDITORAS].copy()
+
+    # Selecionar a variável-alvo
+    y = df[COLUNA_ALVO].copy()
+
+    return X, y
+
+def verificar_vazamento(X):
+    """Verifica se existem atributos não permitidos."""
+
+    colunas_proibidas = [
+        coluna for coluna in X.columns
+        if coluna not in COLUNAS_PREDITORAS
+    ]
+
+    if colunas_proibidas:
+        raise ValueError(
+            f"Possível vazamento de dados: {colunas_proibidas}"
+        )
+
+    print("Verificação de vazamento: OK")
+
 
 if __name__ == "__main__":
 
@@ -75,3 +140,30 @@ if __name__ == "__main__":
         .mul(100)
         .round(2)
     )
+
+        # Separar atributos preditores e variável-alvo
+    X, y = separar_atributos_alvo(dados)
+
+    print("\nDimensões de X:", X.shape)
+    print("Dimensões de y:", y.shape)
+
+    print("\nAtributos selecionados:")
+    for coluna in X.columns:
+        print("-", coluna)
+
+    # Teste positivo: atributos permitidos
+    print("\nTeste positivo:")
+    verificar_vazamento(X)
+
+    # Teste negativo: inclusão proposital de PESO
+    print("\nTeste negativo:")
+
+    X_invalido = X.copy()
+    X_invalido["PESO"] = dados["PESO"]
+
+    try:
+        verificar_vazamento(X_invalido)
+    except ValueError as erro:
+        print("Vazamento detectado corretamente:", erro)
+    else:
+        raise AssertionError("Falha na detecção de vazamento.")
