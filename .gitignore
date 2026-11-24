@@ -1,0 +1,37 @@
+# Documento interno de planejamento do grupo (não sobe para o GitHub)
+PLANO.md
+
+# Dados brutos (a entrega proíbe versionar; o repositório guarda só os scripts que obtêm e tratam os dados)
+data/raw/
+data/interim/
+*.csv
+*.xlsx
+*.xls
+*.dbf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Java / Spring Boot
+target/
+build/
+*.class
+*.jar
+.gradle/
+
+# IDEs e sistema
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Segredos e configuração local
+.env
+*.env
+application-local.properties
+application-local.yml
