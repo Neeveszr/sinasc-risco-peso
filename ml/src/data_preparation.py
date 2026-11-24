@@ -16,7 +16,7 @@ LIMITE_BAIXO_PESO = 2500
 
 
 def carregar_dados():
-    """Carrega a base original do SINASC."
+    """Carrega a base original do SINASC."""
 
     df = pd.read_csv(
         CAMINHO_DADOS,
