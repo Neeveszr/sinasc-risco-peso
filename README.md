@@ -70,6 +70,7 @@ Conforme a Resolução nº 005/2026 (CONSUP) da UNIFSA, declaramos as ferramenta
 
 | Ferramenta | Tarefa | Quem usou |
 |------------|--------|-----------|
+| Claude Code (Anthropic) | Geração do código do front-end (Streamlit), dos testes e do Dockerfile, com revisão e testes feitos pelo integrante | Antonio |
 | | | |
 
 O grupo é capaz de explicar e defender todo o conteúdo entregue.
