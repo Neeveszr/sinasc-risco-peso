@@ -1,0 +1,49 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: sinasc-backend
+  autoconfigure:
+    # Usamos JWT próprio; evita o usuário/senha gerado automaticamente pelo Spring Security.
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sinasc}
+    username: ${DB_USER:sinasc}
+    password: ${DB_PASSWORD:sinasc}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # O esquema é criado e versionado pelo Flyway (db/migration), nunca pelo Hibernate.
+      ddl-auto: none
+  flyway:
+    enabled: true
+  jackson:
+    deserialization:
+      # Campo desconhecido no JSON vira erro 400 (ex.: tentar enviar "perfil" no cadastro público
+      # ou "peso" na predição).
+      fail-on-unknown-properties: true
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+
+app:
+  jwt:
+    # Obrigatória (sem valor padrão de propósito) e com pelo menos 32 caracteres.
+    secret: ${JWT_SECRET}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
+  admin:
+    # Opcional: cria um gestor/auditor inicial se ainda não existir.
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+  model-service:
+    # Usada pela parte do Carlos (chamada ao POST /predict).
+    url: ${MODEL_SERVICE_URL:http://localhost:8000}
+    timeout-seconds: ${MODEL_SERVICE_TIMEOUT:10}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

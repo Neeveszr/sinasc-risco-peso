@@ -1,0 +1,16 @@
+# Só o banco, para desenvolver o back-end localmente (mvn spring-boot:run).
+# Para subir tudo junto, use o docker-compose.yml da raiz do repositório.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: sinasc
+      POSTGRES_USER: ${DB_USER:-sinasc}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sinasc}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+volumes:
+  dbdata:
