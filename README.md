@@ -5,7 +5,7 @@ Sistema de apoio à decisão para UBS: alerta o risco de **baixo peso ao nascer*
 > Trabalho Final Integrado — Inteligência Artificial · Governança de Dados · Desenvolvimento Back-end (UNIFSA, Engenharia de Software).
 > **Contexto 4, Variante A.**
 
-> ⚠️ Este README é um esqueleto. Cada seção marcada com `TODO` deve ser preenchida pela frente responsável até 02/12.
+> ⚠️ Este README é um esqueleto. Cada seção marcada com `TODO` deve ser preenchida pela frente responsável até 30/11.
 
 ## 1. Problema e usuário
 
@@ -18,7 +18,7 @@ Sistema de apoio à decisão para UBS: alerta o risco de **baixo peso ao nascer*
 ## 2. Dados e fonte
 
 - **Base:** SINASC — Sistema de Informações sobre Nascidos Vivos, dados abertos da Prefeitura de São Paulo (Secretaria Municipal da Saúde).
-- **Ano utilizado:** TODO
+- **Ano utilizado:** 2024 (arquivo `DNRE2024.csv`, 120.786 nascidos vivos).
 - **Como obter:** ver [`data/README.md`](data/README.md). Os dados brutos **não são versionados**.
 
 ## 3. Arquitetura

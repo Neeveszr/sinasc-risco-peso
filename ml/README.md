@@ -9,7 +9,7 @@ Responsáveis: Marcus Mikael (dados e modelagem), JP Lima (avaliação, explicab
 | `service/` | Serviço FastAPI que carrega o modelo e expõe `POST /predict` |
 | `artifacts/` | Modelo serializado (`.joblib`), metadados (versão, data, métricas, atributos, limiar) e esquema de entrada |
 
-## Contrato do serviço (a fechar até 27/11)
+## Contrato do serviço (a fechar até 25/11)
 
 `POST /predict` recebe os atributos do pré-natal no formato original e devolve:
 
