@@ -1,99 +1,177 @@
-# Contrato da API de Predição — SINASC
+# Contrato do serviço de predição — `POST /predict`
 
-**Responsáveis:** João Pedro Lima (avaliação, explicabilidade e serviço)  
-**Status:** Contrato em definição  
-**Fonte de referência:** Esta documentação, até a implementação do serviço.
+Responsável: João Pedro Lima (revisão: Marcus Mikael).
 
-## 1. Objetivo
+**Status: provisório (v0.2).** Enquanto o serviço mock não for publicado, este documento é a fonte da verdade.
 
-Definir o padrão de comunicação entre o serviço de Inteligência Artificial e o back-end.
+O back-end (Spring Boot) e o front-end (Streamlit) seguem este contrato. Caso alguma especificação seja alterada, a equipe deve ser avisada.
 
-O modelo estima a probabilidade de um recém-nascido apresentar baixo peso ao nascer, definido como peso inferior a 2.500 g.
+## Endpoints
 
-## 2. Endpoints
+| Método | Rota | Descrição |
+|---|---|---|
+| POST | `/predict` | Recebe os dados do pré-natal e devolve a predição |
+| GET | `/health` | Verifica se o serviço está funcionando |
+| GET | `/model/version` | Retorna a versão do modelo em uso |
 
-### POST `/predict`
+## Entrada
 
-Recebe os atributos do pré-natal e retorna a probabilidade estimada, a faixa de risco e os fatores que contribuíram para a previsão.
+### Exemplo de requisição
 
-### GET `/health`
+```json
+{
+  "FxEtPartur": "25-29",
+  "ESTCIVMAE": 5,
+  "ESCMAE2010": 3,
+  "GRAVIDEZ": 1,
+  "QTDGESTANT": 1,
+  "QTDPARTNOR": 1,
+  "QTDPARTCES": 0,
+  "QTDFILVIVO": 1,
+  "QTDFILMORT": 0,
+  "MESPRENAT": 2
+}
+```
 
-Verifica se o serviço está disponível.
+### Campos e valores válidos
 
-### GET `/model/version`
+| Campo | Obrigatório | Valores válidos | Observação |
+|---|---|---|---|
+| `FxEtPartur` | Não | `10-14`, `15-19`, `20-24`, `25-29`, `30-34`, `35-39`, `40-44`, `45-49`, `>=50` ou `null` | Texto exato, utilizando hífen (`-`), nunca travessão (`–`). `null` representa valor ignorado |
+| `ESTCIVMAE` | Não | 1 a 5, ou `null` | `null` ou `9` são tratados como "Ignorado" |
+| `ESCMAE2010` | Não | 0 a 5, ou `null` | `null` ou `9` são tratados como "Ignorado" |
+| `GRAVIDEZ` | Não | 1 a 3, ou `null` | `null` ou `9` são tratados como "Ignorado" |
+| `QTDGESTANT` | Sim | Inteiro de 0 a 15 | Quantidade de gestações anteriores |
+| `QTDPARTNOR` | Sim | Inteiro de 0 a 15 | Quantidade de partos vaginais anteriores |
+| `QTDPARTCES` | Sim | Inteiro de 0 a 15 | Quantidade de partos cesáreos anteriores |
+| `QTDFILVIVO` | Sim | Inteiro de 0 a 15 | Quantidade de filhos vivos |
+| `QTDFILMORT` | Sim | Inteiro de 0 a 15 | Quantidade de perdas fetais |
+| `MESPRENAT` | Não | Inteiro de 1 a 9, ou `null` | `null` representa pré-natal não iniciado ou não informado. Os dois casos são tratados pelo indicador `MESPRENAT_AUSENTE`. O valor `9` representa o nono mês, não um valor ignorado |
 
-Retorna a versão e os metadados do modelo utilizado.
+### Regras de validação
 
-## 3. Atributos de entrada
+- Nos campos `ESTCIVMAE`, `ESCMAE2010` e `GRAVIDEZ`, os valores `null` e `9` são convertidos para "Ignorado" dentro do serviço.
+- O texto `Ign` não é aceito como valor. O cliente deve enviar `null`.
+- Valores fora dos intervalos ou das categorias permitidas são rejeitados com HTTP 422, sem correção silenciosa.
+- Campos extras, como `PESO`, são rejeitados. O serviço aceita somente os 10 atributos definidos neste contrato.
+- O indicador `MESPRENAT_AUSENTE` é criado dentro do pipeline e não faz parte da entrada da API.
+- O limite máximo de 15 para as colunas de contagem segue a validação atual do front-end. Esse limite ainda deve ser confirmado com o Marcos André, pois a revisão dos dados identificou 8 registros com 20 ou mais partos.
+- A regra de consistência entre `QTDPARTNOR`, `QTDPARTCES` e `QTDGESTANT` permanece pendente de validação com a equipe de dados antes de ser aplicada como restrição definitiva.
 
-O serviço recebe os seguintes atributos:
+## Saída (HTTP 200)
 
-| Atributo | Descrição |
+Os valores abaixo são **ilustrativos** e não representam resultados reais do modelo.
+
+### Exemplo de resposta
+
+```json
+{
+  "probabilidade": 0.62,
+  "faixa_risco": "ALTO",
+  "fatores": [
+    {
+      "atributo": "GRAVIDEZ",
+      "valor": 2,
+      "impacto": 0.41,
+      "direcao": "AUMENTA"
+    },
+    {
+      "atributo": "MESPRENAT",
+      "valor": null,
+      "impacto": 0.12,
+      "direcao": "AUMENTA"
+    },
+    {
+      "atributo": "FxEtPartur",
+      "valor": "25-29",
+      "impacto": 0.05,
+      "direcao": "REDUZ"
+    }
+  ],
+  "versao_modelo": "0.0.0-mock"
+}
+```
+
+### Campos da resposta
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `probabilidade` | Número entre 0 e 1 | Probabilidade estimada de baixo peso ao nascer (menos de 2.500 g) |
+| `faixa_risco` | `BAIXO`, `MEDIO` ou `ALTO` | Classificação de risco, sem acento, para facilitar o uso como enum no Java |
+| `fatores` | Lista | Os 3 principais fatores explicativos, ordenados do maior para o menor impacto |
+| `fatores[].atributo` | Texto | Atributo original do SINASC. Não devem ser retornadas colunas do One-Hot Encoding, como `FxEtPartur_25-29` |
+| `fatores[].valor` | Texto, número ou `null` | Valor do atributo no caso analisado |
+| `fatores[].impacto` | Número | Valor absoluto da soma dos valores SHAP das colunas derivadas do atributo original |
+| `fatores[].direcao` | `AUMENTA` ou `REDUZ` | Indica se a contribuição do atributo aumenta ou reduz a previsão de risco |
+| `versao_modelo` | Texto | Versão do modelo utilizado na predição |
+
+### Explicabilidade com SHAP
+
+Os fatores explicativos devem ser apresentados por atributo original do SINASC.
+
+Quando uma variável categórica for transformada em várias colunas pelo One-Hot Encoding, os valores SHAP dessas colunas devem ser somados para representar o atributo original.
+
+A direção será definida pelo sinal da contribuição somada:
+
+- `AUMENTA`: contribuição positiva para o risco previsto.
+- `REDUZ`: contribuição negativa para o risco previsto.
+
+O serviço deve retornar os 3 principais fatores, ordenados pelo valor absoluto do impacto.
+
+O back-end será responsável por transformar os campos `atributo` e `direcao` em textos compreensíveis para o usuário no front-end.
+
+Os fatores SHAP representam contribuições para a previsão do modelo e não devem ser interpretados como relações de causa e efeito.
+
+## Faixas de risco
+
+**Faixas provisórias.** Serão utilizadas até a avaliação do modelo prevista para 27/11/2026. Após a avaliação, os limites deverão ser revisados com base nos resultados e nos critérios definidos pela equipe.
+
+| Faixa | Probabilidade |
 |---|---|
-| `FxEtPartur` | Faixa etária da parturiente |
-| `ESTCIVMAE` | Estado civil da mãe |
-| `ESCMAE2010` | Escolaridade da mãe |
-| `GRAVIDEZ` | Tipo de gravidez |
-| `QTDGESTANT` | Quantidade de gestações anteriores |
-| `QTDPARTNOR` | Quantidade de partos normais |
-| `QTDPARTCES` | Quantidade de partos cesáreos |
-| `QTDFILVIVO` | Quantidade de filhos vivos |
-| `QTDFILMORT` | Quantidade de filhos mortos |
-| `MESPRENAT` | Mês de início do pré-natal |
+| `BAIXO` | Menor que 0,15 |
+| `MEDIO` | De 0,15 até menor que 0,30 |
+| `ALTO` | 0,30 ou maior |
 
-Os atributos devem ser enviados com seus nomes originais, conforme o conjunto de dados utilizado no treinamento.
+O limiar de decisão do modelo ainda não está definido.
 
-## 4. Regras de validação
+## Erros
 
-- Os atributos devem respeitar os tipos e domínios definidos no esquema de entrada.
-- Valores inválidos devem gerar resposta HTTP 422.
-- Atributos adicionais não previstos no contrato devem ser rejeitados.
-- Valores ausentes devem ser enviados como `null`, quando permitido.
-- `MESPRENAT = null` representa ausência de informação sobre o início do pré-natal e deve ser tratado pelo pipeline.
-- Os limites dos atributos quantitativos devem ser confirmados com a equipe de dados antes da implementação definitiva.
+Entradas inválidas devem retornar HTTP 422.
 
-## 5. Resposta da predição
+Exemplo de resposta de erro no formato padrão do FastAPI:
 
-A resposta deverá conter:
+```json
+{
+  "detail": [
+    {
+      "type": "less_than_equal",
+      "loc": ["body", "MESPRENAT"],
+      "msg": "Input should be less than or equal to 9"
+    }
+  ]
+}
+```
 
-- Probabilidade estimada de baixo peso.
-- Faixa de risco: `BAIXO`, `MEDIO` ou `ALTO`.
-- Principais fatores explicativos, utilizando SHAP.
-- Versão do modelo utilizado.
+O back-end deve traduzir esse erro para o formato padronizado de erros utilizado pela aplicação.
 
-Os nomes definitivos dos campos devem ser mantidos em snake_case para facilitar a integração entre IA e back-end.
+## Versão provisória (mock)
 
-## 6. Explicabilidade
+Enquanto o modelo treinado não estiver disponível, o serviço poderá utilizar respostas simuladas apenas para permitir a integração entre as aplicações.
 
-Os fatores explicativos devem indicar:
+A versão `0.0.0-mock` identifica essas respostas.
 
-- Atributo analisado.
-- Impacto na previsão.
-- Direção do impacto, indicando se contribuiu para aumentar ou reduzir o risco.
+| Entrada | Resposta do mock |
+|---|---|
+| `MESPRENAT` é `null` | `ALTO` (probabilidade 0,45) |
+| `GRAVIDEZ` é 2 ou 3 | `MEDIO` (probabilidade 0,20) |
+| Qualquer outra entrada válida | `BAIXO` (probabilidade 0,08) |
 
-A explicação deve ser apresentada de forma compreensível para o usuário, sem afirmar causalidade.
+Essas respostas são **inventadas para fins de integração** e não representam o desempenho ou as previsões do modelo real.
 
-## 7. Limiar e faixas de risco
+O mock não deve ser utilizado no deploy final.
 
-Os limites das faixas de risco ainda dependem da avaliação do modelo.
+## Como rodar
 
-A definição deverá considerar:
+O serviço mock ainda está em desenvolvimento e será disponibilizado em outro Pull Request.
 
-- Métricas de desempenho.
-- Recall da classe de baixo peso.
-- Custo dos falsos negativos.
-- Necessidade de equilíbrio entre sensibilidade e precisão.
-
-Os valores finais serão documentados após a avaliação.
-
-## 8. Versionamento
-
-Toda resposta de predição deverá identificar a versão do modelo utilizado.
-
-A versão deverá estar associada aos metadados do artefato treinado.
-
-## 9. Status da implementação
-
-Este documento define o contrato esperado.
-
-A implementação do serviço FastAPI, os esquemas de validação e os exemplos definitivos de entrada e saída serão adicionados posteriormente, após a integração com o modelo treinado e o alinhamento com o back-end.
+Quando estiver publicado, as instruções de instalação e execução serão adicionadas aqui.
