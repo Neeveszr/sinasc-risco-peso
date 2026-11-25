@@ -1,6 +1,6 @@
 # ml — Dados, modelo e serviço de predição
 
-Responsáveis: Marcus Mikael (dados e modelagem), JP Lima (avaliação, explicabilidade e serviço).
+Responsáveis: Marcus Mikael (dados e modelagem), João Pedro Lima (avaliação, explicabilidade e serviço).
 
 | Pasta | Conteúdo |
 |-------|----------|
@@ -9,17 +9,10 @@ Responsáveis: Marcus Mikael (dados e modelagem), JP Lima (avaliação, explicab
 | `service/` | Serviço FastAPI que carrega o modelo e expõe `POST /predict` |
 | `artifacts/` | Modelo serializado (`.joblib`), metadados (versão, data, métricas, atributos, limiar) e esquema de entrada |
 
-## Contrato do serviço (a fechar até 25/11)
+## Contrato do serviço
 
-`POST /predict` recebe os atributos do pré-natal no formato original e devolve:
-
-- probabilidade de baixo peso;
-- faixa de risco (baixo, médio, alto);
-- principais fatores da explicação (SHAP);
-- versão do modelo.
-
-TODO: JSON de exemplo de entrada e saída (o back-end usa o mesmo contrato).
+Consulte o [contrato da API de predição](contrato_predict.md).
 
 ## Como executar
 
-TODO: instalar `requirements.txt`, rodar o tratamento, treinar e subir o serviço.
+As instruções de instalação das dependências, execução do tratamento dos dados, treinamento do modelo e inicialização do serviço serão adicionadas quando o fluxo de execução estiver definido.
