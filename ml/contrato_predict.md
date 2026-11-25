@@ -1,8 +1,10 @@
 # Contrato do serviço de predição — `POST /predict`
 
-Responsável: João Pedro Lima (revisão: Marcus Mikael).
-**Status: provisório (v0.2).** Enquanto o serviço mock não for publicado, este documento é a fonte da verdade.
-O back-end (Spring Boot) segue este contrato. O front-end (Streamlit) se comunica exclusivamente com o back-end, utilizando os campos em camelCase. Mudou algo aqui, avise o grupo.git status
+Responsável: João Pedro Lima
+Status: Em revisão
+
+O back-end (Spring Boot) segue este contrato. O front-end (Streamlit) se comunica exclusivamente com o back-end, utilizando os campos em camelCase. Mudou algo aqui, avise o grupo.
+
 ## Endpoints
 
 | Método | Rota | Descrição |
@@ -82,6 +84,8 @@ Os valores abaixo são **ilustrativos**, não são resultado do modelo.
 O back-end transforma `direcao` e `atributo` no texto em linguagem do usuário que o front mostra.
 
 Unidade do `impacto`: depende do modelo final e do explainer (log-odds para regressão logística ou boosting; probabilidade para Random Forest com `TreeExplainer`). Será fixada e documentada aqui quando o modelo estiver escolhido. Até lá, o back-end **não deve** exibir o `impacto` como percentual: use-o só para ordenar os fatores e, junto com a `direcao`, indicar o efeito.
+
+Os fatores do SHAP mostram a contribuição de cada atributo para a previsão do modelo e não indicam relação de causa e efeito.
 
 ## Faixas de risco
 
