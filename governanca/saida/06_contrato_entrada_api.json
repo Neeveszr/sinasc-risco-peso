@@ -1,39 +1,41 @@
 {
   "versao_dados": "SINASC-SP-2024",
-  "alvo": "baixo_peso (1 = PESO < 2500 g)",
-  "regras": [
-    "O formulário sempre envia os 10 campos.",
-    "'Ignorado' é valor válido: código 9 (99 em mes_inicio_prenatal) ou 'Ign' na idade.",
-    "Campo vazio é rejeitado pela API com erro 422 e mensagem clara.",
-    "Os valores são os códigos originais do SINASC, sem agrupamento. O pipeline de IA usa esta mesma lista."
+  "alvo": "baixo_peso (1 = PESO < 2500 g), calculado pelo pipeline de IA a partir de PESO",
+  "regras_gerais": [
+    "Front -> back-end: usar nomeFrontBackend (camelCase).",
+    "Back-end -> serviço de IA: usar nomeServicoIA (nomes originais do SINASC).",
+    "Campo não informado (null ou vazio) é tratado como Ignorado, e não gera erro 422.",
+    "O código 9 (99 em mesInicioPrenatal) também é aceito e é tratado como Ignorado.",
+    "Faixa etária é validada com hífen (25-29). O pipeline aceita também o travessão (25–29).",
+    "Contagens obstétricas são validadas de 0 a 15. Valores acima disso são rejeitados pela API.",
+    "A sinalização de qualidade usa o limite de 40 e é separada da validação da API."
   ],
   "campos": [
     {
-      "campo": "idade_mae_faixa",
-      "origem_sinasc": "FxEtPartur",
+      "nomeFrontBackend": "idadeMaeFaixa",
+      "nomeServicoIA": "FxEtPartur",
       "descricao": "Faixa etária da gestante (5 anos)",
       "tipo": "string",
-      "valores_validos": [
-        "10–14",
-        "15–19",
-        "20–24",
-        "25–29",
-        "30–34",
-        "35–39",
-        "40–44",
-        "45–49",
+      "valoresValidos": [
+        "10-14",
+        "15-19",
+        "20-24",
+        "25-29",
+        "30-34",
+        "35-39",
+        "40-44",
+        "45-49",
         ">=50",
         "Ign"
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "escolaridade_mae",
-      "origem_sinasc": "ESCMAE2010",
+      "nomeFrontBackend": "escolaridadeMae",
+      "nomeServicoIA": "ESCMAE2010",
       "descricao": "Escolaridade da gestante (códigos SINASC)",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         0,
         1,
         2,
@@ -42,15 +44,14 @@
         5,
         9
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "estado_civil_mae",
-      "origem_sinasc": "ESTCIVMAE",
+      "nomeFrontBackend": "estadoCivilMae",
+      "nomeServicoIA": "ESTCIVMAE",
       "descricao": "Situação conjugal da gestante (códigos SINASC)",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         1,
         2,
         3,
@@ -58,29 +59,27 @@
         5,
         9
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "tipo_gravidez",
-      "origem_sinasc": "GRAVIDEZ",
+      "nomeFrontBackend": "tipoGravidez",
+      "nomeServicoIA": "GRAVIDEZ",
       "descricao": "Tipo de gravidez (1 única, 2 dupla, 3 tripla ou mais, 9 ignorado)",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         1,
         2,
         3,
         9
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "mes_inicio_prenatal",
-      "origem_sinasc": "MESPRENAT",
+      "nomeFrontBackend": "mesInicioPrenatal",
+      "nomeServicoIA": "MESPRENAT",
       "descricao": "Mês de gestação em que começou o pré-natal (99 ignorado)",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         1,
         2,
         3,
@@ -92,15 +91,14 @@
         9,
         99
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "gestacoes_anteriores",
-      "origem_sinasc": "QTDGESTANT",
+      "nomeFrontBackend": "gestacoesAnteriores",
+      "nomeServicoIA": "QTDGESTANT",
       "descricao": "Número de gestações anteriores",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         0,
         1,
         2,
@@ -116,42 +114,16 @@
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40
+        15
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "partos_normais_anteriores",
-      "origem_sinasc": "QTDPARTNOR",
+      "nomeFrontBackend": "partosNormaisAnteriores",
+      "nomeServicoIA": "QTDPARTNOR",
       "descricao": "Número de partos normais anteriores",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         0,
         1,
         2,
@@ -167,42 +139,16 @@
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40
+        15
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "partos_cesareos_anteriores",
-      "origem_sinasc": "QTDPARTCES",
+      "nomeFrontBackend": "partosCesareosAnteriores",
+      "nomeServicoIA": "QTDPARTCES",
       "descricao": "Número de partos cesáreos anteriores",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         0,
         1,
         2,
@@ -218,42 +164,16 @@
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40
+        15
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "filhos_vivos",
-      "origem_sinasc": "QTDFILVIVO",
+      "nomeFrontBackend": "filhosVivos",
+      "nomeServicoIA": "QTDFILVIVO",
       "descricao": "Número de filhos vivos",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         0,
         1,
         2,
@@ -269,42 +189,16 @@
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40
+        15
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     },
     {
-      "campo": "filhos_mortos",
-      "origem_sinasc": "QTDFILMORT",
+      "nomeFrontBackend": "filhosMortos",
+      "nomeServicoIA": "QTDFILMORT",
       "descricao": "Número de filhos mortos",
       "tipo": "integer",
-      "valores_validos": [
+      "valoresValidos": [
         0,
         1,
         2,
@@ -320,35 +214,9 @@
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40
+        15
       ],
-      "obrigatorio": true,
-      "vazio_aceito": false
+      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
     }
   ]
 }

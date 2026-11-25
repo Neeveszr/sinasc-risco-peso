@@ -7,7 +7,7 @@ Como rodar (raiz do projeto):
     python governanca/governanca_sinasc.py
 
 Entrada : data/raw/DNRE2024.csv     (dado bruto: NÃO versionar)
-Saídas  : data/processed/           (dado de treino: NÃO versionar)
+Saídas  : data/processed/           (arquivo para análise de qualidade, NÃO é o treino: NÃO versionar)
           data/interim/             (listas por registro para revisão: NÃO versionar)
           governanca/saida/         (apenas contagens e tabelas agregadas: versionar)
 
@@ -15,7 +15,9 @@ Política:
 - Nada é excluído por suspeita. Valores fora de faixa e inconsistências são sinalizados.
 - Excluídos: apenas duplicatas exatas e registros sem PESO (sem alvo).
 - Valores fora do domínio do SINASC viram ausentes (registrado no log).
-- Não há supressão no arquivo de treino. O k<5 é aplicado só às tabelas publicadas (arquivo 09).
+- O treino usa a base bruta com o pipeline de IA (separar_atributos_alvo). O arquivo de
+  data/processed/ serve só para análise de qualidade e não entra no treino.
+- Não há supressão. O k<5 é aplicado só às tabelas publicadas (arquivo 09).
 """
 import json
 import os
@@ -34,7 +36,22 @@ ANO_REF = 2024
 FAIXA_PESO_REVISAO = (300, 6500)   # gramas: sinaliza, NÃO exclui (suposição a confirmar)
 LIMIAR_BAIXO_PESO = 2500           # alvo: PESO < 2500 g (variante A)
 K_MIN = 5                          # tamanho mínimo de célula em tabelas publicadas
-MAX_CONTAGEM = 40                  # plausibilidade para contagens obstétricas (suposição a confirmar)
+MAX_CONTAGEM = 40                  # sinalização de qualidade para contagens obstétricas (suposição a confirmar)
+MAX_CONTAGEM_API = 15              # validação da API para contagens obstétricas (acordo do grupo)
+
+# Nome do campo na API (front -> back, camelCase). Conferir com frontend/README.md.
+NOME_API = {
+    "idade_mae_faixa": "idadeMaeFaixa",
+    "escolaridade_mae": "escolaridadeMae",
+    "estado_civil_mae": "estadoCivilMae",
+    "tipo_gravidez": "tipoGravidez",
+    "mes_inicio_prenatal": "mesInicioPrenatal",
+    "gestacoes_anteriores": "gestacoesAnteriores",
+    "partos_normais_anteriores": "partosNormaisAnteriores",
+    "partos_cesareos_anteriores": "partosCesareosAnteriores",
+    "filhos_vivos": "filhosVivos",
+    "filhos_mortos": "filhosMortos",
+}
 
 # Os 10 atributos do modelo: nome usado pelo pipeline -> coluna original do SINASC
 FEATURES = {
@@ -283,31 +300,38 @@ def tabela_publicavel(proc):
 
 
 def contrato_api():
+    """Contrato entre front, back-end e serviço de IA, conforme acordado com o grupo."""
     campos = []
     for nome, col in FEATURES.items():
         if nome == "idade_mae_faixa":
-            tipo, valores = "string", IDADE_VALIDAS
+            tipo = "string"
+            valores = ["10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
+                       "40-44", "45-49", ">=50", "Ign"]
         elif nome in DOMINIO_CODIGO:
-            tipo, valores = "integer", DOMINIO_CODIGO[nome]
+            tipo = "integer"
+            valores = DOMINIO_CODIGO[nome]
         else:
-            tipo, valores = "integer", list(range(0, MAX_CONTAGEM + 1))
+            tipo = "integer"
+            valores = list(range(0, MAX_CONTAGEM_API + 1))
         campos.append({
-            "campo": nome,
-            "origem_sinasc": col,
+            "nomeFrontBackend": NOME_API[nome],
+            "nomeServicoIA": col,
             "descricao": DESCRICAO_FEATURE[nome],
             "tipo": tipo,
-            "valores_validos": valores,
-            "obrigatorio": True,
-            "vazio_aceito": False,
+            "valoresValidos": valores,
+            "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)",
         })
     return {
         "versao_dados": f"SINASC-SP-{ANO_REF}",
-        "alvo": "baixo_peso (1 = PESO < 2500 g)",
-        "regras": [
-            "O formulário sempre envia os 10 campos.",
-            "'Ignorado' é valor válido: código 9 (99 em mes_inicio_prenatal) ou 'Ign' na idade.",
-            "Campo vazio é rejeitado pela API com erro 422 e mensagem clara.",
-            "Os valores são os códigos originais do SINASC, sem agrupamento. O pipeline de IA usa esta mesma lista.",
+        "alvo": "baixo_peso (1 = PESO < 2500 g), calculado pelo pipeline de IA a partir de PESO",
+        "regras_gerais": [
+            "Front -> back-end: usar nomeFrontBackend (camelCase).",
+            "Back-end -> serviço de IA: usar nomeServicoIA (nomes originais do SINASC).",
+            "Campo não informado (null ou vazio) é tratado como Ignorado, e não gera erro 422.",
+            "O código 9 (99 em mesInicioPrenatal) também é aceito e é tratado como Ignorado.",
+            "Faixa etária é validada com hífen (25-29). O pipeline aceita também o travessão (25–29).",
+            f"Contagens obstétricas são validadas de 0 a {MAX_CONTAGEM_API}. Valores acima disso são rejeitados pela API.",
+            f"A sinalização de qualidade usa o limite de {MAX_CONTAGEM} e é separada da validação da API.",
         ],
         "campos": campos,
     }
@@ -362,7 +386,7 @@ def main():
 
     for nome, tabela in interim.items():
         tabela.to_csv(INTERIM_DIR / nome, index=False, encoding="utf-8-sig")
-    proc.to_csv(PROC_DIR / "sinasc_treino_2024.csv", index=False, encoding="utf-8")
+    proc.to_csv(PROC_DIR / "analise_qualidade_2024.csv", index=False, encoding="utf-8")
 
     print("\nTratamento:")
     for k, v in log.items():
@@ -370,7 +394,7 @@ def main():
     print(f"\nk mínimo no arquivo de treino: {kanon['k_minimo_no_arquivo_de_treino']}")
     print(f"Saídas agregadas: {SAIDA}")
     print(f"Listas por registro (não versionar): {INTERIM_DIR}")
-    print(f"Dado de treino (não versionar): {PROC_DIR}")
+    print(f"Arquivo de análise de qualidade (não versionar): {PROC_DIR}")
 
 
 if __name__ == "__main__":

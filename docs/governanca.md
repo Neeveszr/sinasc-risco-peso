@@ -20,8 +20,9 @@ originais do SINASC, sem agrupamento.
 - `01_catalogo_dados.csv`: para cada coluna, descrição, tipo, percentual de faltantes
   (calculado), classificação LGPD, confidencialidade, decisão e justificativa. Todas as
   descrições estão marcadas como pendentes de conferência com o dicionário oficial.
-- `06_contrato_entrada_api.json`: os 10 campos do modelo, com tipo, valores válidos e regras
-  de entrada. É a lista que o pipeline de IA e o back-end devem usar.
+- `06_contrato_entrada_api.json`: para cada um dos 10 atributos, o nome no front e no
+  back-end (`nomeFrontBackend`), o nome enviado ao serviço de IA (`nomeServicoIA`, nome original
+  do SINASC) e os valores válidos. Seção 8.
 
 ## 3. Classificação dos dados (requisito 6.2)
 
@@ -53,9 +54,11 @@ Princípios da LGPD: finalidade, necessidade e segurança. Medidas aplicadas:
 3. Remoção de atributos do parto ou posteriores ao pré-natal (vazamento temporal): semanas
    de gestação, Apgar, tipo de parto, indução, apresentação, anomalia congênita, Robson e
    número de consultas.
-4. Arquivo de treino sem agrupamento. O pipeline precisa dos códigos originais do SINASC, e
-   o arquivo de treino não é publicado nem versionado. Ele fica em `data/processed/`, com
-   acesso restrito ao Data Custodian.
+4. Treino com a base bruta. O treino usa a base bruta com o pipeline de IA
+   (`separar_atributos_alvo`), com os nomes originais do SINASC. O arquivo gerado em
+   `data/processed/` (`analise_qualidade_2024.csv`) serve só para análise de qualidade e não
+   entra no treino. Ele não é publicado nem versionado, e o acesso fica restrito ao Data
+   Custodian.
 5. Tabela publicada com k ≥ 5. As tabelas agregadas que saem do grupo (arquivo 09) omitem
    qualquer célula com menos de 5 registros, mostradas como "<5".
 6. Listas por registro (linha do CSV original, peso e histórico obstétrico) ficam em
@@ -63,9 +66,9 @@ Princípios da LGPD: finalidade, necessidade e segurança. Medidas aplicadas:
 7. Pseudonimização: não aplicável, porque a base não tem identificador direto.
 8. Todo atributo mantido no modelo está justificado no catálogo.
 
-Risco de reidentificação no arquivo de treino: 13,2% dos registros estão em combinações de
-atributos com menos de 5 pessoas (k mínimo = 1). Isso é aceito porque o arquivo não é
-publicado. O risco deve ser tratado nos controles de acesso, não na publicação.
+Risco de reidentificação na base de análise e na base de treino: 13,2% dos registros estão em
+combinações de atributos com menos de 5 pessoas (k mínimo = 1). Isso é aceito porque as bases
+não são publicadas. O risco deve ser tratado nos controles de acesso, não na publicação.
 
 ## 5. Qualidade de dados (requisito 6.4)
 
@@ -156,14 +159,21 @@ Controles de segurança:
 
 ## 8. Contrato de entrada da API (requisito 7.2)
 
-O formulário sempre envia os 10 campos do modelo, com os códigos originais do SINASC:
-- "Ignorado" é valor válido: código 9 (99 no mês de início do pré-natal) ou "Ign" na idade.
-- Campo vazio é rejeitado com erro 422 e mensagem clara.
-- Valores fora da lista de `06_contrato_entrada_api.json` são rejeitados.
+O contrato está em `06_contrato_entrada_api.json`. Para cada um dos 10 atributos ele traz:
+- `nomeFrontBackend`: nome no front e no back-end (camelCase).
+- `nomeServicoIA`: nome que o back-end envia ao serviço de IA (nome original do SINASC).
+- `valoresValidos`: lista de valores aceitos pela API.
 
-O contrato precisa ser alinhado com a equipe de IA (Marcus) e com o front (JP) antes da
-entrega. Enquanto isso não for feito, o pipeline e o front podem usar listas diferentes, e a
-predição sai errada sem erro.
+Regras acordadas com o grupo:
+- Campo não informado (null ou vazio) é tratado como "Ignorado". Não gera erro 422.
+- O código 9 (99 em mês de início do pré-natal) também é aceito e é tratado como "Ignorado".
+- A faixa etária é validada com hífen (25-29). O pipeline aceita também o travessão (25–29).
+- Contagens obstétricas são validadas de 0 a 15. Na base de 2024, 4 registros em cada uma das
+  colunas QTDGESTANT, QTDPARTNOR, QTDPARTCES e QTDFILMORT passam desse limite e seriam rejeitados
+  pela API. O limite de 40 continua como sinalização de qualidade (seção 5).
+
+Antes da entrega, falta conferir os nomes camelCase com `frontend/README.md` e alinhar os
+valores com a equipe de IA (Marcus).
 
 ## 9. Direitos do titular e retenção (intermediário)
 
@@ -184,7 +194,8 @@ predição sai errada sem erro.
   obstétricas. Ambas definem apenas o que é sinalizado, não o que é excluído.
 - Definição de gestação anterior: confirmar se gestações sem parto entram em
   `QTDGESTANT`, porque isso decide os casos de K1 e K2.
-- Contrato da API: alinhar com a equipe de IA e com o front antes da entrega.
+- Contrato da API: conferir os nomes camelCase com `frontend/README.md` e alinhar os valores
+  com a equipe de IA antes da entrega.
 - Base de 2024: o modelo reflete o período de referência e precisa de atualização periódica.
 - O modelo não tem validação externa.
 
