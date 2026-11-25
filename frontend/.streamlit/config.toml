@@ -1,0 +1,12 @@
+[client]
+# Esconde o botão "Deploy" e o menu de desenvolvedor.
+toolbarMode = "minimal"
+# Não mostra o rastro do erro ao usuário (só uma mensagem curta).
+showErrorDetails = "none"
+
+[server]
+headless = true
+
+[browser]
+# Não envia estatísticas de uso para o Streamlit.
+gatherUsageStats = false
