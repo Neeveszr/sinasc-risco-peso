@@ -16,4 +16,4 @@ Os scripts que leem e tratam os dados ficam em [`ml/src/`](../ml/src/).
 
 ## Ano utilizado
 
-TODO
+2024, por ser um ano fechado e com dados consolidados. O arquivo é o `DNRE2024.csv` (120.786 registros, 37 colunas), que deve ficar em `data/raw/DNRE2024.csv`, caminho lido por [`ml/src/data_preparation.py`](../ml/src/data_preparation.py).
