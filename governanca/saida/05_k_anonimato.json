@@ -4,14 +4,15 @@
     "escolaridade_mae",
     "estado_civil_mae",
     "tipo_gravidez",
-    "trimestre_inicio_prenatal",
+    "mes_inicio_prenatal",
     "gestacoes_anteriores",
-    "partos_anteriores",
+    "partos_normais_anteriores",
+    "partos_cesareos_anteriores",
     "filhos_vivos",
     "filhos_mortos"
   ],
-  "k_minimo_no_arquivo_tratado": 5,
-  "grupos_distintos": 607,
-  "regra_aplicada": "Registros em grupos com menos de 5 pessoas foram suprimidos do arquivo tratado.",
-  "regra_de_divulgacao": "Tabelas agregadas publicadas devem omitir células com menos de 5 registros."
+  "k_minimo_no_arquivo_de_treino": 1,
+  "registros_em_grupos_com_k_menor_que_5": 15940,
+  "percentual_registros_em_grupos_com_k_menor_que_5": 13.2,
+  "uso": "O arquivo de treino não é publicado nem versionado. Apenas as tabelas do arquivo 09 são publicadas, com células de menos de 5 registros omitidas."
 }
