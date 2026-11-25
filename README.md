@@ -25,7 +25,7 @@ Sistema de apoio à decisão para UBS: alerta o risco de **baixo peso ao nascer*
 
 ```
 SINASC (CSV) → tratamento e governança → treino (scikit-learn Pipeline)
-            → serviço Python (FastAPI) ←→ API Spring Boot ←→ Front-end web
+            → serviço Python (FastAPI) ←→ API Spring Boot ←→ Front-end web (Streamlit)
                                               └── banco relacional
 ```
 
@@ -33,7 +33,7 @@ SINASC (CSV) → tratamento e governança → treino (scikit-learn Pipeline)
 |-------|----------|
 | [`ml/`](ml/) | Tratamento dos dados, treino, avaliação e serviço do modelo (Python) |
 | [`backend/`](backend/) | API REST em Java + Spring Boot |
-| [`frontend/`](frontend/) | Aplicação web |
+| [`frontend/`](frontend/) | Aplicação web em Streamlit (Python), que consome a API |
 | [`docs/`](docs/) | Model card e documento de governança de dados |
 | [`data/`](data/) | Instruções para obter os dados (conteúdo bruto fora do Git) |
 
