@@ -1,0 +1,17 @@
+{
+  "quase_identificadores": [
+    "idade_mae_faixa",
+    "escolaridade_mae",
+    "estado_civil_mae",
+    "tipo_gravidez",
+    "trimestre_inicio_prenatal",
+    "gestacoes_anteriores",
+    "partos_anteriores",
+    "filhos_vivos",
+    "filhos_mortos"
+  ],
+  "k_minimo_no_arquivo_tratado": 5,
+  "grupos_distintos": 607,
+  "regra_aplicada": "Registros em grupos com menos de 5 pessoas foram suprimidos do arquivo tratado.",
+  "regra_de_divulgacao": "Tabelas agregadas publicadas devem omitir células com menos de 5 registros."
+}

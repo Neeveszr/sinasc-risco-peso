@@ -1,0 +1,14 @@
+{
+  "linhas_entrada": 175817,
+  "duplicatas_exatas_excluidas": 15,
+  "sem_peso_excluidos": 4,
+  "peso_fora_faixa_sinalizado_mantido": 11,
+  "registros_suspeitos_K1": 381,
+  "registros_suspeitos_K2": 156,
+  "registros_suspeitos_unicos_antes_da_supressao": 382,
+  "registros_suprimidos_grupo_menor_que_5": 1383,
+  "suprimidos_com_ausencia_em_algum_campo": 538,
+  "registros_suspeitos_restantes_no_arquivo_tratado": 222,
+  "linhas_saida": 174415,
+  "prevalencia_baixo_peso_pct": 9.31
+}

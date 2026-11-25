@@ -1,0 +1,122 @@
+{
+  "versao_dados": "SINASC-SP-2014",
+  "alvo": "baixo_peso (1 = PESO < 2500 g)",
+  "observacao": "Campo 'obrigatorio' significa que o formulário sempre envia o campo; 'ignorado' é um valor válido. Alinhar com a equipe de IA antes da entrega.",
+  "campos": [
+    {
+      "campo": "idade_mae_faixa",
+      "descricao": "Faixa etária da gestante",
+      "tipo": "string",
+      "valores_validos": [
+        "10–19",
+        "20–34",
+        "35+"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "escolaridade_mae",
+      "descricao": "Escolaridade da gestante",
+      "tipo": "string",
+      "valores_validos": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "estado_civil_mae",
+      "descricao": "Situação conjugal da gestante",
+      "tipo": "string",
+      "valores_validos": [
+        "com_companheiro",
+        "sem_companheiro"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "tipo_gravidez",
+      "descricao": "Tipo de gravidez",
+      "tipo": "string",
+      "valores_validos": [
+        "unica",
+        "dupla",
+        "tripla_ou_mais"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "trimestre_inicio_prenatal",
+      "descricao": "Trimestre em que o pré-natal começou",
+      "tipo": "string",
+      "valores_validos": [
+        "1",
+        "2",
+        "3"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "gestacoes_anteriores",
+      "descricao": "Gestações anteriores",
+      "tipo": "string",
+      "valores_validos": [
+        "0",
+        "1",
+        "2+"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "partos_anteriores",
+      "descricao": "Partos anteriores (normais e cesáreos somados)",
+      "tipo": "string",
+      "valores_validos": [
+        "0",
+        "1",
+        "2+"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "filhos_vivos",
+      "descricao": "Filhos vivos",
+      "tipo": "string",
+      "valores_validos": [
+        "0",
+        "1",
+        "2+"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    },
+    {
+      "campo": "filhos_mortos",
+      "descricao": "Filhos mortos",
+      "tipo": "string",
+      "valores_validos": [
+        "0",
+        "1+"
+      ],
+      "aceita_ignorado": true,
+      "obrigatorio": true,
+      "tratamento_quando_ignorado": "Valor 'ignorado' vira categoria própria no pipeline (SimpleImputer strategy='constant', fill_value='ignorado'). A definição final é da equipe de IA."
+    }
+  ]
+}
