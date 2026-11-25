@@ -5,8 +5,6 @@
 
 - Projeto: SINASC — Risco de baixo peso ao nascer
 - Base: DNRE2024
-- Responsável: Marcus Mikael Rodrigues Vieira
-- Frente: Inteligência Artificial
 
 ## 2. Definição do problema
 
