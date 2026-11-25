@@ -62,7 +62,7 @@ TODO: pré-requisitos, variáveis de ambiente, banco de dados, autenticação e 
 | Marcos André | Governança de Dados |
 | Rodolfo Dheymison | Back-end |
 | Carlos Arthur | Back-end |
-| Antonio | Gestão, front-end, deploy e repositório |
+| Antonio | Gestão, front-end, deploy e organização do repositório |
 
 ## 9. Declaração de uso de IA generativa
 
