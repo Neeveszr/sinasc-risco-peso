@@ -32,8 +32,8 @@ public class Predicao {
     @JoinColumn(name = "usuario_id", nullable = false, updatable = false)
     private Usuario usuario;
 
-    @Column(nullable = false, updatable = false)
-    private Double probabilidade;
+    @Column(name = "score", nullable = false, updatable = false)
+    private Double score;
 
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     @Column(name = "faixa_risco", nullable = false, length = 10, updatable = false)
@@ -57,8 +57,8 @@ public class Predicao {
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 
-    public Double getProbabilidade() { return probabilidade; }
-    public void setProbabilidade(Double probabilidade) { this.probabilidade = probabilidade; }
+    public Double getScore() { return score; }
+    public void setScore(Double score) { this.score = score; }
 
     public FaixaRisco getFaixaRisco() { return faixaRisco; }
     public void setFaixaRisco(FaixaRisco faixaRisco) { this.faixaRisco = faixaRisco; }

@@ -44,11 +44,13 @@ public abstract class ApiTestBase {
     protected UsuarioService usuarioService;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     @BeforeEach
     void limparBanco() {
-        // log_acesso primeiro, porque referencia usuario
+        jdbc.update("delete from revisao_humana");
+        jdbc.update("delete from predicao");
+        jdbc.update("delete from registro_analise");
         jdbc.update("delete from log_acesso");
         jdbc.update("delete from usuario");
     }

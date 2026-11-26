@@ -9,4 +9,6 @@ public interface PredicaoRepository extends JpaRepository<Predicao, Long> {
     List<Predicao> findByRegistroAnaliseIdOrderByCriadoEmDesc(Long registroAnaliseId);
 
     List<Predicao> findByUsuarioId(Long usuarioId);
+    
+    boolean existsByRegistroAnaliseId(Long registroAnaliseId);
 }
