@@ -1,39 +1,104 @@
 import sys
 import json
-import joblib
-import pandas as pd
-import numpy as np
 from pathlib import Path
 
-# Localizar a pasta ml
-pasta_ml = Path(__file__).resolve().parents[1]
+import joblib
+import numpy as np
+import pandas as pd
 
-# Disponibilizar os módulos personalizados
-sys.path.insert(0, str(pasta_ml / "src"))
 
-# Localizar os artefatos
-pasta_artifacts = pasta_ml / "artifacts"
+# Configurar os caminhos do projeto
+RAIZ_ML = Path(__file__).resolve().parents[1]
 
-# Carregar o modelo treinado
+sys.path.insert(0, str(RAIZ_ML / "src"))
+
+PASTA_ARTIFACTS = RAIZ_ML / "artifacts"
+
+
+# Carregar os artefatos
 modelo = joblib.load(
-    pasta_artifacts / "modelo_sinasc.joblib"
+    PASTA_ARTIFACTS / "modelo_sinasc.joblib"
 )
 
-# Carregar os metadados
 with open(
-    pasta_artifacts / "metadata.json",
+    PASTA_ARTIFACTS / "metadata.json",
     encoding="utf-8"
 ) as arquivo:
-    metadata = json.load(arquivo)
+    metadados = json.load(arquivo)
 
-# Carregar o contrato de entrada
 with open(
-    pasta_artifacts / "input_schema.json",
+    PASTA_ARTIFACTS / "input_schema.json",
     encoding="utf-8"
 ) as arquivo:
-    schema = json.load(arquivo)
+    contrato = json.load(arquivo)
 
-# Registro exclusivamente fictício
+
+# Recuperar as configurações dos metadados
+configuracao = metadados["classificacao"]
+
+threshold = configuracao["threshold"]
+
+faixas = configuracao["faixas"]
+
+
+# Classificar a faixa experimental
+def classificar_faixa(score):
+
+    if not np.isfinite(score) or not 0 <= score <= 1:
+        raise ValueError("Score invalido.")
+
+    if score < faixas["MEDIO"]["min"]:
+        return "BAIXO"
+
+    if score < faixas["ALTO"]["min"]:
+        return "MEDIO"
+
+    return "ALTO"
+
+
+# Validar as configurações
+assert threshold == 0.43
+
+assert configuracao["score_calibrado"] is False
+
+assert set(faixas) == {"BAIXO", "MEDIO", "ALTO"}
+
+assert (
+    faixas["BAIXO"]["max"]
+    == faixas["MEDIO"]["min"]
+)
+
+assert (
+    faixas["MEDIO"]["max"]
+    == faixas["ALTO"]["min"]
+)
+
+
+# Testar os limites das faixas
+limite_medio = faixas["MEDIO"]["min"]
+
+limite_alto = faixas["ALTO"]["min"]
+
+assert 0 < limite_medio < limite_alto < 1
+
+assert classificar_faixa(0.0) == "BAIXO"
+
+assert classificar_faixa(
+    np.nextafter(limite_medio, -np.inf)
+) == "BAIXO"
+
+assert classificar_faixa(limite_medio) == "MEDIO"
+
+assert classificar_faixa(
+    np.nextafter(limite_alto, -np.inf)
+) == "MEDIO"
+
+assert classificar_faixa(limite_alto) == "ALTO"
+
+assert classificar_faixa(1.0) == "ALTO"
+
+
+# Registro fictício para teste de inferência
 dados = {
     "FxEtPartur": "25-29",
     "ESTCIVMAE": 2,
@@ -47,59 +112,40 @@ dados = {
     "MESPRENAT": 3
 }
 
-# Verificar os campos de entrada
-atributos = schema["campos_obrigatorios"]
 
-assert set(dados.keys()) == set(atributos)
+# Validar os atributos de entrada
+assert set(dados) == set(contrato["atributos"])
 
-# Converter para DataFrame
-entrada = pd.DataFrame(
-    [dados],
-    columns=atributos
-)
+assert "Ign" not in contrato["atributos"][
+    "FxEtPartur"
+]["valores_aceitos"]
 
-# Identificar a posição da classe positiva
-indice_positivo = list(modelo.classes_).index(1)
 
 # Realizar a inferência
+entrada = pd.DataFrame([dados])
+
 score = float(
-    modelo.predict_proba(entrada)[0, indice_positivo]
+    modelo.predict_proba(entrada)[0, 1]
 )
 
-# Validar o score
 assert np.isfinite(score)
 assert 0 <= score <= 1
 
-# Recuperar os limites dos metadados
-threshold = metadata["classificacao"]["threshold"]
-
-limite_moderado = (
-    metadata["classificacao"]["faixas"]["moderado"]["min"]
-)
-
-# Aplicar a classificação experimental
 classe = int(score >= threshold)
 
-if score < limite_moderado:
-    faixa = "Baixo"
-elif score < threshold:
-    faixa = "Moderado"
-else:
-    faixa = "Alto"
+faixa = classificar_faixa(score)
 
-# Exibir os resultados
+
+# Resultado experimental
 resultado = {
-    "versao_modelo": metadata["versao"],
-    "score_experimental": round(score, 6),
+   "versao_modelo": metadados["versao"],
+    "score": round(score, 6),
+    "score_calibrado": False,
     "classe_prevista": classe,
     "faixa_experimental": faixa,
     "threshold": threshold,
     "finalidade": "Exclusivamente academica"
 }
-
-print("Modelo carregado com sucesso!")
-print("Contrato de entrada: OK")
-print("\nResultado da inferencia:")
 
 print(json.dumps(
     resultado,
@@ -107,4 +153,7 @@ print(json.dumps(
     ensure_ascii=False
 ))
 
-print("\nTeste independente: OK")
+print("\nValidacao dos metadados: OK")
+print("Validacao das faixas: OK")
+print("Validacao dos atributos: OK")
+print("Teste de inferencia: OK")

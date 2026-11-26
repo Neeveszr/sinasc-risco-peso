@@ -6,11 +6,11 @@ scipy==1.17.1
 joblib==1.6.0
 
 # Análise e explicabilidade
-shap
+shap==0.51.0
 matplotlib
 jupyter
 
 # Serviço de IA
-fastapi
-uvicorn
-pydantic
+fastapi==0.165.0
+uvicorn==0.54.0
+pydantic==2.14.4
