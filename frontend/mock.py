@@ -45,27 +45,35 @@ def listar_usuarios():
     return sorted(_USUARIOS.values(), key=lambda u: u["nome"])
 
 
-def _faixa(probabilidade):
-    # Limiares provisórios de demonstração; os reais serão definidos pelo JP.
-    if probabilidade < 0.15:
+# Limites das faixas do modelo 1.0.0 (ml/artifacts/metadata.json, percentis 50 e 85).
+LIMITE_MEDIO = 0.4495
+LIMITE_ALTO = 0.5042
+
+
+def _faixa(score):
+    if score < LIMITE_MEDIO:
         return "BAIXO"
-    if probabilidade < 0.30:
+    if score < LIMITE_ALTO:
         return "MEDIO"
     return "ALTO"
 
 
 def _calcular(dados):
+    # Pesos inventados, só para o score cair na mesma escala do modelo real:
+    # um caso comum fica perto de 0,34, e gêmeos ou tipo de gravidez não informado vão para ALTO.
     contribuicoes = []
 
     gravidez = dados.get("tipoGravidez")
     if gravidez == 2:
         contribuicoes.append(("tipoGravidez", "Gravidez dupla (gêmeos)", 0.50))
     elif gravidez == 3:
-        contribuicoes.append(("tipoGravidez", "Gravidez tripla ou mais", 0.85))
+        contribuicoes.append(("tipoGravidez", "Gravidez tripla ou mais", 0.55))
+    elif gravidez is None:
+        contribuicoes.append(("tipoGravidez", "Tipo de gravidez não informado", 0.39))
 
     mes = dados.get("mesInicioPrenatal")
     if mes is None:
-        contribuicoes.append(("mesInicioPrenatal", "Pré-natal ainda não iniciado", 0.17))
+        contribuicoes.append(("mesInicioPrenatal", "Pré-natal ainda não iniciado", 0.19))
     elif mes >= 4:
         contribuicoes.append(("mesInicioPrenatal", f"Pré-natal iniciado no {mes}º mês", 0.05))
     else:
@@ -80,23 +88,23 @@ def _calcular(dados):
     if (dados.get("perdasFetais") or 0) >= 1:
         contribuicoes.append(("perdasFetais", "Perda fetal anterior", 0.03))
 
-    probabilidade = min(0.99, max(0.01, 0.08 + sum(c[2] for c in contribuicoes)))
+    score = min(0.99, max(0.01, 0.34 + sum(c[2] for c in contribuicoes)))
     contribuicoes.sort(key=lambda c: abs(c[2]), reverse=True)
     fatores = [
         {"atributo": a, "descricao": d, "efeito": "AUMENTA" if v > 0 else "REDUZ", "impacto": round(abs(v), 3)}
         for a, d, v in contribuicoes[:3]
     ]
-    return round(probabilidade, 3), fatores
+    return round(score, 3), fatores
 
 
 def criar_predicao(dados, usuario=None):
     global _proximo_id
-    probabilidade, fatores = _calcular(dados)
+    score, fatores = _calcular(dados)
     usuario = usuario or _USUARIOS["operador"]
     predicao = {
         "id": _proximo_id,
-        "probabilidade": probabilidade,
-        "faixaRisco": _faixa(probabilidade),
+        "score": score,
+        "faixaRisco": _faixa(score),
         "fatores": fatores,
         "versaoModelo": VERSAO_DEMO,
         "criadoEm": datetime.now(timezone.utc).isoformat(),
@@ -123,7 +131,7 @@ def _popular():
     agora = datetime.now(timezone.utc)
     for _ in range(40):
         dados = {
-            "tipoGravidez": gerador.choices([1, 2, 3], weights=[90, 9, 1])[0],
+            "tipoGravidez": gerador.choices([1, 2, 3], weights=[96, 3, 1])[0],
             "mesInicioPrenatal": gerador.choice([1, 2, 2, 3, 4, 6, None]),
             "faixaEtaria": gerador.choice(["15-19", "20-24", "25-29", "30-34", "35-39", "40-44"]),
             "perdasFetais": gerador.choice([0, 0, 0, 1]),
