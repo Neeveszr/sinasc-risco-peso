@@ -255,9 +255,93 @@ Os limites devem ser utilizados com a precisão armazenada em `metadata.json`.
 
 O limiar de classificação binária permanece em 0,43. As faixas de apresentação não equivalem às classes binárias: um score de 0,44, por exemplo, corresponde à classe 1 e à faixa BAIXO. O recall de 73,98% no teste final não corresponde à captura de positivos pela faixa ALTO, que foi de 32,94% nas predições out-of-fold do treinamento.
 
-Os novos limites foram escolhidos sem utilizar o conjunto de teste. A distribuição das faixas em novos dados não é garantida; a avaliação dessas faixas no conjunto de teste ainda não foi apresentada.
+Os novos limites foram escolhidos sem utilizar o conjunto de teste. A avaliação complementar das faixas no conjunto de teste foi realizada posteriormente, preservando integralmente os limites definidos. A distribuição das faixas em novos dados não é garantida.
 
 O score produzido pelo Random Forest balanceado não é uma probabilidade calibrada. As faixas são categorias experimentais relativas à distribuição de referência, sem validação clínica ou indicação para triagem.
+
+### Avaliação das faixas no conjunto de teste
+
+Após a definição dos limites experimentais,
+foi realizada uma avaliação complementar utilizando
+o conjunto de teste original, composto por 24.156
+registros e 2.494 casos positivos de baixo peso.
+
+Foram preservados os seguintes limites:
+
+- BAIXO: score inferior a 0,4495018644184755.
+- MEDIO: score maior ou igual a 0,4495018644184755
+  e inferior a 0,5042154221007533.
+- ALTO: score maior ou igual a 0,5042154221007533.
+
+O limiar de classificação binária permaneceu em 0,43.
+
+#### Resultados no conjunto de teste
+
+| Faixa | Registros | Casos positivos | Percentual da base | Proporção de positivos | Positivos capturados |
+|---|---:|---:|---:|---:|---:|
+| BAIXO | 12.016 | 863 | 49,74% | 7,18% | 34,60% |
+| MEDIO | 8.289 | 788 | 34,31% | 9,51% | 31,60% |
+| ALTO | 3.851 | 843 | 15,94% | 21,89% | 33,80% |
+| Total | 24.156 | 2.494 | 100% | 10,32% | 100% |
+
+Os percentuais foram arredondados para apresentação.
+
+#### Comparação entre treinamento OOF e teste
+
+| Indicador | Faixa | OOF (%) | Teste (%) | Diferença (p.p.) |
+|---|---|---:|---:|---:|
+| Percentual da base | BAIXO | 49,9472 | 49,7433 | -0,2039 |
+| Percentual da base | MEDIO | 35,0524 | 34,3145 | -0,7379 |
+| Percentual da base | ALTO | 15,0004 | 15,9422 | +0,9418 |
+| Proporção de positivos | BAIXO | 7,1403 | 7,1821 | +0,0417 |
+| Proporção de positivos | MEDIO | 9,5751 | 9,5066 | -0,0686 |
+| Proporção de positivos | ALTO | 22,6715 | 21,8904 | -0,7810 |
+| Positivos capturados | BAIXO | 34,5464 | 34,6030 | +0,0567 |
+| Positivos capturados | MEDIO | 32,5113 | 31,5958 | -0,9154 |
+| Positivos capturados | ALTO | 32,9424 | 33,8011 | +0,8588 |
+
+As diferenças foram calculadas utilizando os valores
+originais, antes do arredondamento.
+
+#### Análise dos resultados
+
+A faixa ALTO concentrou 15,94% dos registros
+do conjunto de teste, contra 15,00% nas predições
+out-of-fold do treinamento.
+
+A proporção observada de baixo peso nessa faixa
+foi de 21,89%, superior à prevalência geral
+de 10,32% do conjunto de teste.
+
+A faixa ALTO concentrou 33,80% dos casos positivos,
+enquanto os demais 66,20% permaneceram distribuídos
+entre as faixas BAIXO e MEDIO.
+
+Todos os indicadores apresentaram diferenças
+absolutas inferiores a um ponto percentual
+entre os resultados OOF e teste.
+
+Esses resultados demonstram consistência descritiva
+das faixas dentro da base estudada, sem comprovar
+capacidade de generalização para outras populações.
+
+Os limites foram preservados integralmente.
+Nenhum treinamento, ajuste de hiperparâmetros
+ou redefinição das faixas foi realizado após
+a observação dos resultados do teste.
+
+As métricas originais do classificador também
+foram reproduzidas, incluindo a matriz de confusão.
+
+O recall de 73,98%, associado ao limiar de 0,43,
+não deve ser confundido com os 33,80% de casos
+positivos concentrados na faixa ALTO.
+
+O experimento está documentado no notebook
+`ml/notebooks/04_avaliacao_faixas_teste.ipynb`.
+
+As faixas permanecem exclusivamente acadêmicas
+e não possuem validação para triagem clínica.
 
 ## 13. Exportação dos artefatos
 
@@ -341,7 +425,7 @@ Executar os notebooks na seguinte ordem:
 1. `01_analise_exploratoria.ipynb`
 2. `02_analise_preprocessamento.ipynb`
 3. `03_treinamento_modelos.ipynb`
-
+4. `04_avaliacao_faixas_teste.ipynb`
 Para testar o modelo exportado:
 
 ```bash
@@ -416,7 +500,7 @@ Esses resultados são associações descritivas e não comprovam causalidade. O 
 - Diferenças entre os valores históricos utilizados no treinamento e os limites de validação da API.
 - Faixas experimentais sem validação clínica.
 - Distribuição das faixas por percentis não garantida em novos dados.
-- A faixa ALTO concentra apenas 32,94% dos positivos nas predições out-of-fold; esse indicador não equivale ao recall do classificador.
+- A faixa ALTO concentra apenas 32,94% dos casos positivos nas predições out-of-fold e 33,80% no conjunto de teste. Esses indicadores não equivalem ao recall do classificador.
 - Sensibilidade à ausência de GRAVIDEZ e MESPRENAT demonstrada em um único registro fictício, sem avaliação agregada da estabilidade dos scores.
 - Poucos exemplos de GRAVIDEZ ausente no treinamento.
 - O score não deve ser apresentado como percentual de chance; o contrato público ainda precisa ser alinhado.
@@ -429,4 +513,18 @@ A etapa de dados e modelagem contemplou análise exploratória, definição da v
 
 O Pipeline treinado foi exportado e validado para reutilização pelo serviço de IA.
 
-Os resultados demonstram a viabilidade técnica de reutilizar o pipeline no sistema acadêmico, respeitando as limitações identificadas durante os experimentos. Após a revisão do PR, foram redefinidas as faixas de apresentação, documentada a sensibilidade a valores ausentes, atualizados os metadados e o contrato interno e fixadas as dependências adicionais. O teste independente atualizado foi concluído com sucesso. A integração completa, a revisão do Model Card e a validação em ambiente novo permanecem pendentes.
+Os resultados demonstram a viabilidade técnica de reutilizar o pipeline no sistema acadêmico, respeitando as limitações identificadas durante os experimentos.
+
+Após a revisão do PR, foram redefinidas as faixas de apresentação, documentada a sensibilidade a valores ausentes, atualizados os metadados e o contrato interno e fixadas as dependências adicionais.
+
+O teste independente de inferência foi concluído com sucesso.
+
+A avaliação complementar das faixas no conjunto de teste apresentou resultados próximos aos observados nas predições out-of-fold, com diferenças inferiores a um ponto percentual em todos os indicadores avaliados.
+
+A faixa ALTO concentrou 15,94% dos registros de teste, com frequência observada de baixo peso de 21,89% e captura de 33,80% dos casos positivos.
+
+Os limites experimentais, o modelo treinado e o limiar de classificação de 0,43 foram preservados integralmente.
+
+A integração completa, a consolidação do Model Card e a validação em ambiente novo ainda deverão ser confirmadas.
+
+O modelo permanece exclusivamente acadêmico, sem calibração dos scores ou validação clínica.
