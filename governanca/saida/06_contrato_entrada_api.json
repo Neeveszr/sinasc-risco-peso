@@ -203,7 +203,7 @@
     {
       "nomeFrontBackend": "perdasFetais",
       "nomeServicoIA": "QTDFILMORT",
-      "descricao": "Número de filhos mortos",
+      "descricao": "Número de perdas fetais anteriores",
       "tipo": "integer",
       "valoresValidos": [
         0,

@@ -174,11 +174,12 @@ Regras acordadas com o grupo:
   perdas fetais) são obrigatórias, de 0 a 15. Null gera erro 422.
 - Regra entre campos: partos normais + partos cesáreos <= gestações anteriores.
 
-Sobre a base de treino: a análise de qualidade (`analise_qualidade_2024.csv`) já segue o
-domínio da API, com "Ign" e 99 tratados como ausentes. O treino usa a base bruta com o pipeline
-de IA. Por isso, o pipeline deve tratar 99 e "Ign" como ausentes, para que o modelo veja no
-treino os mesmos valores que recebe na API. Isso precisa ser confirmado com a equipe de IA
-(Marcus).
+Confirmado com a equipe de IA: no modelo da `main`, null, 99 e 10 em mês de início do
+pré-natal dão o mesmo score, e null e "Ign" na faixa etária também. Portanto, esses valores
+são tratados como ausentes, tanto na API quanto no modelo.
+
+A análise de qualidade (`analise_qualidade_2024.csv`) já segue o domínio da API, com "Ign" e
+99 tratados como ausentes. O treino usa a base bruta com o pipeline de IA.
 
 Na base de 2024, 4 registros em cada uma das colunas QTDGESTANT, QTDPARTNOR, QTDPARTCES e
 QTDFILMORT passam de 15 e seriam rejeitados pela API. O limite de 40 continua como
@@ -186,14 +187,15 @@ sinalização de qualidade (seção 5).
 
 ## 9. Direitos do titular e retenção (intermediário)
 
-- Revisão de decisão automatizada (LGPD, art. 20): o botão "Solicitar revisão humana" abre
-  um pedido analisado pelo gestor/auditor, com prazo e resultado registrados. Prazo ainda
-  não definido.
-- Retenção do histórico de predições: prazo a definir pelo controlador, com justificativa
-  pela finalidade (acompanhamento da decisão e auditoria) e pelas regras institucionais. Não
-  há prazo legal fixo a ser citado. O grupo pode propor um valor para discussão, mas ele só
-  vale depois de aprovado pelo controlador. Após o prazo, os registros devem ser excluídos
-  ou anonimizados.
+Propostas para decisão do grupo até sábado, 28/11. Valem só depois de aprovadas pelo
+controlador. Não são exigências legais fixas.
+
+- Prazo para revisão humana (LGPD, art. 20): proposta de 5 dias úteis para o gestor/auditor
+  responder ao pedido aberto pelo botão "Solicitar revisão humana". A data do pedido, a data
+  da resposta e o resultado ficam registrados.
+- Retenção do histórico de predições: proposta de 5 anos a partir da data de cada predição.
+  Depois desse prazo, os registros identificáveis são excluídos de forma definitiva. Dados
+  agregados e sem identificação podem ser mantidos para estatística.
 
 ## 10. Limitações e pendências
 
@@ -203,7 +205,8 @@ sinalização de qualidade (seção 5).
   obstétricas. Ambas definem apenas o que é sinalizado, não o que é excluído.
 - Definição de gestação anterior: confirmar se gestações sem parto entram em
   `QTDGESTANT`, porque isso decide os casos de K1 e K2.
-- Treino e API: confirmar com a equipe de IA que o pipeline trata 99 e "Ign" como ausentes.
+- Treino e API: confirmado com a equipe de IA. Null, 99 e 10 em mês de início do pré-natal
+  e null e "Ign" na faixa etária geram o mesmo score no modelo.
 - Base de 2024: o modelo reflete o período de referência e precisa de atualização periódica.
 - O modelo não tem validação externa.
 

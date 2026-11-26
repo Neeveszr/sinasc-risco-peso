@@ -91,7 +91,7 @@ DESCRICAO_FEATURE = {
     "partos_normais_anteriores": "Número de partos normais anteriores",
     "partos_cesareos_anteriores": "Número de partos cesáreos anteriores",
     "filhos_vivos": "Número de filhos vivos",
-    "filhos_mortos": "Número de filhos mortos",
+    "filhos_mortos": "Número de perdas fetais anteriores",
 }
 
 # Catálogo: coluna, descrição, tipo, classificação LGPD, confidencialidade, decisão, justificativa.
