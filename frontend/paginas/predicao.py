@@ -17,14 +17,19 @@ with st.form("predicao"):
     st.subheader("Perfil da gestante")
     colunas = st.columns(2)
     for i, campo in enumerate(campos.CATEGORICOS):
-        opcoes = [None, *campo["opcoes"]]
         with colunas[i % 2]:
-            dados[campo["api"]] = st.selectbox(
-                campo["rotulo"],
-                opcoes,
-                format_func=lambda valor, c=campo: "Não informado" if valor is None else c["opcoes"][valor],
-                key=campo["api"],
-            )
+            if campo.get("obrigatorio"):
+                # Sem "Não informado" e sem opção pré-selecionada: a pessoa precisa escolher.
+                dados[campo["api"]] = st.selectbox(
+                    campo["rotulo"], list(campo["opcoes"]), index=None, placeholder="Selecione",
+                    format_func=campo["opcoes"].get, key=campo["api"],
+                )
+            else:
+                dados[campo["api"]] = st.selectbox(
+                    campo["rotulo"], [None, *campo["opcoes"]],
+                    format_func=lambda valor, c=campo: "Não informado" if valor is None else c["opcoes"][valor],
+                    key=campo["api"],
+                )
 
     st.subheader("Histórico obstétrico")
     colunas = st.columns(3)

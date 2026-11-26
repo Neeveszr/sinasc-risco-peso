@@ -60,8 +60,27 @@ def test_predicao_gemelar_gera_risco_alto_e_permite_revisao():
     assert any("Revisão humana solicitada" in s.value for s in at.success)
 
 
+def test_resultado_mostra_pontuacao_e_nunca_chance():
+    at = entrar("operador@ubs.sp.gov.br")
+    at.selectbox(key="tipoGravidez").select(1)
+    botao(at, "Calcular risco").click().run()
+    assert not at.exception
+    assert at.metric[0].label == "Pontuação do modelo (de 0 a 1)"
+    assert "%" not in at.metric[0].value
+    assert "chance" not in textos(at).lower().replace("não é a chance", "")
+
+
+def test_tipo_de_gravidez_e_obrigatorio():
+    at = entrar("operador@ubs.sp.gov.br")
+    assert at.selectbox(key="tipoGravidez").value is None
+    botao(at, "Calcular risco").click().run()
+    assert any("Tipo de gravidez: selecione" in e.value for e in at.error)
+    assert at.title[0].value == "Nova predição"
+
+
 def test_partos_maior_que_gestacoes_e_rejeitado():
     at = entrar("operador@ubs.sp.gov.br")
+    at.selectbox(key="tipoGravidez").select(1)
     at.number_input(key="partosNormais").set_value(2)
     botao(at, "Calcular risco").click().run()
     assert any("não pode ser maior" in e.value for e in at.error)
@@ -95,8 +114,18 @@ def test_privacidade_fala_em_hash_e_nao_em_criptografia():
 
 
 def test_validacao_regras_basicas():
-    base = {c["api"]: 0 for c in campos.CONTAGENS} | {"mesInicioPrenatal": 2}
+    base = {c["api"]: 0 for c in campos.CONTAGENS} | {"mesInicioPrenatal": 2, "tipoGravidez": 1}
     assert campos.validar(base) == []
     assert campos.validar(base | {"mesInicioPrenatal": None}) == []
+    assert campos.validar(base | {"faixaEtaria": None, "estadoCivil": None, "escolaridade": None}) == []
+    assert campos.validar(base | {"tipoGravidez": None})
     assert campos.validar(base | {"mesInicioPrenatal": 10})
     assert campos.validar(base | {"partosCesareos": 16, "gestacoesAnteriores": 16})
+
+
+def test_faixas_do_mock_seguem_os_limites_do_modelo():
+    import mock
+
+    assert mock._faixa(0.44) == "BAIXO"  # acima do limiar 0,43 da classe, mas a faixa é BAIXO
+    assert mock._faixa(mock.LIMITE_MEDIO) == "MEDIO"
+    assert mock._faixa(mock.LIMITE_ALTO) == "ALTO"

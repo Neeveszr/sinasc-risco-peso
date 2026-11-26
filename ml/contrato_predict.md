@@ -1,6 +1,7 @@
-# Contrato do serviço de predição — `POST /predict`
+# Co# Contrato do serviço de predição — `POST /predict`
 
 Responsável: João Pedro Lima
+
 Status: Em revisão
 
 O back-end (Spring Boot) segue este contrato. O front-end (Streamlit) se comunica exclusivamente com o back-end, utilizando os campos em camelCase. Mudou algo aqui, avise o grupo.

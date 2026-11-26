@@ -1,0 +1,18 @@
+{
+  "quase_identificadores": [
+    "idade_mae_faixa",
+    "escolaridade_mae",
+    "estado_civil_mae",
+    "tipo_gravidez",
+    "mes_inicio_prenatal",
+    "gestacoes_anteriores",
+    "partos_normais_anteriores",
+    "partos_cesareos_anteriores",
+    "filhos_vivos",
+    "filhos_mortos"
+  ],
+  "k_minimo_no_arquivo_de_treino": 1,
+  "registros_em_grupos_com_k_menor_que_5": 15880,
+  "percentual_registros_em_grupos_com_k_menor_que_5": 13.15,
+  "uso": "O arquivo de treino não é publicado nem versionado. Apenas as tabelas do arquivo 09 são publicadas, com células de menos de 5 registros omitidas."
+}
