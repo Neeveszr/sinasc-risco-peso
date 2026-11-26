@@ -141,7 +141,7 @@ if __name__ == "__main__":
         .round(2)
     )
 
-        # Separar atributos preditores e variável-alvo
+    # Separar atributos preditores e variável-alvo
     X, y = separar_atributos_alvo(dados)
 
     print("\nDimensões de X:", X.shape)

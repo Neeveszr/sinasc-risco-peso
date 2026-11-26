@@ -1,0 +1,20 @@
+# Perfil dos testes de integração: banco H2 em memória, sem Docker e sem PostgreSQL.
+# O esquema vem das entidades (as migrations do Flyway são para o PostgreSQL).
+spring:
+  datasource:
+    url: jdbc:h2:mem:sinasc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+
+app:
+  jwt:
+    secret: segredo-de-teste-com-bem-mais-de-32-caracteres-123456
+    expiration-minutes: 5
+  admin:
+    email: ""
+    password: ""
