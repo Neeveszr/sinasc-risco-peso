@@ -3,7 +3,7 @@ idade_mae_faixa,FxEtPartur,0.0,0.0
 escolaridade_mae,ESCMAE2010,0.01,0.01
 estado_civil_mae,ESTCIVMAE,0.06,0.06
 tipo_gravidez,GRAVIDEZ,0.01,0.01
-mes_inicio_prenatal,MESPRENAT,0.75,0.76
+mes_inicio_prenatal,MESPRENAT,0.75,0.85
 gestacoes_anteriores,QTDGESTANT,0.02,0.02
 partos_normais_anteriores,QTDPARTNOR,0.02,0.02
 partos_cesareos_anteriores,QTDPARTCES,0.01,0.01

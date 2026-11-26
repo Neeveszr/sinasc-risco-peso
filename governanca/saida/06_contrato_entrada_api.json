@@ -4,15 +4,15 @@
   "regras_gerais": [
     "Front -> back-end: usar nomeFrontBackend (camelCase).",
     "Back-end -> serviço de IA: usar nomeServicoIA (nomes originais do SINASC).",
-    "Campo não informado (null ou vazio) é tratado como Ignorado, e não gera erro 422.",
-    "O código 9 (99 em mesInicioPrenatal) também é aceito e é tratado como Ignorado.",
-    "Faixa etária é validada com hífen (25-29). O pipeline aceita também o travessão (25–29).",
-    "Contagens obstétricas são validadas de 0 a 15. Valores acima disso são rejeitados pela API.",
-    "A sinalização de qualidade usa o limite de 40 e é separada da validação da API."
+    "Código 9 é valor válido só em escolaridade, estadoCivil e tipoGravidez (Ignorado).",
+    "Faixa etária é validada com hífen (40-44). O valor desconhecido vai como null.",
+    "As 5 contagens são obrigatórias, de 0 a 15. null gera erro 422.",
+    "Regra entre campos: partosNormais + partosCesareos <= gestacoesAnteriores.",
+    "Sinalização de qualidade (fora da API) usa o limite de 40."
   ],
   "campos": [
     {
-      "nomeFrontBackend": "idadeMaeFaixa",
+      "nomeFrontBackend": "faixaEtaria",
       "nomeServicoIA": "FxEtPartur",
       "descricao": "Faixa etária da gestante (5 anos)",
       "tipo": "string",
@@ -25,13 +25,13 @@
         "35-39",
         "40-44",
         "45-49",
-        ">=50",
-        "Ign"
+        ">=50"
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": false,
+      "nulo": "Aceito; tratado como Ignorado"
     },
     {
-      "nomeFrontBackend": "escolaridadeMae",
+      "nomeFrontBackend": "escolaridade",
       "nomeServicoIA": "ESCMAE2010",
       "descricao": "Escolaridade da gestante (códigos SINASC)",
       "tipo": "integer",
@@ -44,10 +44,11 @@
         5,
         9
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": false,
+      "nulo": "Aceito; tratado como Ignorado"
     },
     {
-      "nomeFrontBackend": "estadoCivilMae",
+      "nomeFrontBackend": "estadoCivil",
       "nomeServicoIA": "ESTCIVMAE",
       "descricao": "Situação conjugal da gestante (códigos SINASC)",
       "tipo": "integer",
@@ -59,7 +60,8 @@
         5,
         9
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": false,
+      "nulo": "Aceito; tratado como Ignorado"
     },
     {
       "nomeFrontBackend": "tipoGravidez",
@@ -72,12 +74,13 @@
         3,
         9
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": false,
+      "nulo": "Aceito; tratado como Ignorado"
     },
     {
       "nomeFrontBackend": "mesInicioPrenatal",
       "nomeServicoIA": "MESPRENAT",
-      "descricao": "Mês de gestação em que começou o pré-natal (99 ignorado)",
+      "descricao": "Mês de gestação em que começou o pré-natal (1 a 9; vazio = não iniciado ou não informado)",
       "tipo": "integer",
       "valoresValidos": [
         1,
@@ -88,10 +91,10 @@
         6,
         7,
         8,
-        9,
-        99
+        9
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": false,
+      "nulo": "Aceito; significa não iniciado ou não informado"
     },
     {
       "nomeFrontBackend": "gestacoesAnteriores",
@@ -116,10 +119,11 @@
         14,
         15
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": true,
+      "nulo": "Rejeitado com erro 422"
     },
     {
-      "nomeFrontBackend": "partosNormaisAnteriores",
+      "nomeFrontBackend": "partosNormais",
       "nomeServicoIA": "QTDPARTNOR",
       "descricao": "Número de partos normais anteriores",
       "tipo": "integer",
@@ -141,10 +145,11 @@
         14,
         15
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": true,
+      "nulo": "Rejeitado com erro 422"
     },
     {
-      "nomeFrontBackend": "partosCesareosAnteriores",
+      "nomeFrontBackend": "partosCesareos",
       "nomeServicoIA": "QTDPARTCES",
       "descricao": "Número de partos cesáreos anteriores",
       "tipo": "integer",
@@ -166,7 +171,8 @@
         14,
         15
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": true,
+      "nulo": "Rejeitado com erro 422"
     },
     {
       "nomeFrontBackend": "filhosVivos",
@@ -191,10 +197,11 @@
         14,
         15
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": true,
+      "nulo": "Rejeitado com erro 422"
     },
     {
-      "nomeFrontBackend": "filhosMortos",
+      "nomeFrontBackend": "perdasFetais",
       "nomeServicoIA": "QTDFILMORT",
       "descricao": "Número de filhos mortos",
       "tipo": "integer",
@@ -216,7 +223,8 @@
         14,
         15
       ],
-      "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)"
+      "obrigatorio": true,
+      "nulo": "Rejeitado com erro 422"
     }
   ]
 }

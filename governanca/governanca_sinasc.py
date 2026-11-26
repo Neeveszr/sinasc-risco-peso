@@ -41,16 +41,16 @@ MAX_CONTAGEM_API = 15              # validação da API para contagens obstétri
 
 # Nome do campo na API (front -> back, camelCase). Conferir com frontend/README.md.
 NOME_API = {
-    "idade_mae_faixa": "idadeMaeFaixa",
-    "escolaridade_mae": "escolaridadeMae",
-    "estado_civil_mae": "estadoCivilMae",
+    "idade_mae_faixa": "faixaEtaria",
+    "escolaridade_mae": "escolaridade",
+    "estado_civil_mae": "estadoCivil",
     "tipo_gravidez": "tipoGravidez",
     "mes_inicio_prenatal": "mesInicioPrenatal",
     "gestacoes_anteriores": "gestacoesAnteriores",
-    "partos_normais_anteriores": "partosNormaisAnteriores",
-    "partos_cesareos_anteriores": "partosCesareosAnteriores",
+    "partos_normais_anteriores": "partosNormais",
+    "partos_cesareos_anteriores": "partosCesareos",
     "filhos_vivos": "filhosVivos",
-    "filhos_mortos": "filhosMortos",
+    "filhos_mortos": "perdasFetais",
 }
 
 # Os 10 atributos do modelo: nome usado pelo pipeline -> coluna original do SINASC
@@ -68,13 +68,15 @@ FEATURES = {
 }
 
 IDADE_VALIDAS = ["10–14", "15–19", "20–24", "25–29", "30–34", "35–39",
-                 "40–44", "45–49", ">=50", "Ign"]
+                 "40–44", "45–49", ">=50", "Ign"]   # formato da base (travessão e "Ign")
+IDADE_API = ["10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
+             "40-44", "45-49", ">=50"]              # formato da API (hífen, sem "Ign")
 # Códigos do SINASC. 9 (ou 99 no mês) = ignorado, que é valor válido.
 DOMINIO_CODIGO = {
     "escolaridade_mae": [0, 1, 2, 3, 4, 5, 9],
     "estado_civil_mae": [1, 2, 3, 4, 5, 9],
     "tipo_gravidez": [1, 2, 3, 9],
-    "mes_inicio_prenatal": [1, 2, 3, 4, 5, 6, 7, 8, 9, 99],
+    "mes_inicio_prenatal": [1, 2, 3, 4, 5, 6, 7, 8, 9],
 }
 CONTAGENS = ["gestacoes_anteriores", "partos_normais_anteriores",
              "partos_cesareos_anteriores", "filhos_vivos", "filhos_mortos"]
@@ -84,7 +86,7 @@ DESCRICAO_FEATURE = {
     "escolaridade_mae": "Escolaridade da gestante (códigos SINASC)",
     "estado_civil_mae": "Situação conjugal da gestante (códigos SINASC)",
     "tipo_gravidez": "Tipo de gravidez (1 única, 2 dupla, 3 tripla ou mais, 9 ignorado)",
-    "mes_inicio_prenatal": "Mês de gestação em que começou o pré-natal (99 ignorado)",
+    "mes_inicio_prenatal": "Mês de gestação em que começou o pré-natal (1 a 9; vazio = não iniciado ou não informado)",
     "gestacoes_anteriores": "Número de gestações anteriores",
     "partos_normais_anteriores": "Número de partos normais anteriores",
     "partos_cesareos_anteriores": "Número de partos cesáreos anteriores",
@@ -182,7 +184,7 @@ def checar(df, fase):
         add("Acurácia", "A5", "ESCMAE2010 fora do domínio SINASC", fora("ESCMAE2010", DOMINIO_CODIGO["escolaridade_mae"]))
         add("Acurácia", "A6", "ESTCIVMAE fora do domínio SINASC", fora("ESTCIVMAE", DOMINIO_CODIGO["estado_civil_mae"]))
         add("Acurácia", "A7", "GRAVIDEZ fora do domínio SINASC", fora("GRAVIDEZ", DOMINIO_CODIGO["tipo_gravidez"]))
-        add("Acurácia", "A8", "MESPRENAT fora do domínio SINASC (ex.: 10)", fora("MESPRENAT", DOMINIO_CODIGO["mes_inicio_prenatal"]))
+        add("Acurácia", "A8", "MESPRENAT fora de 1 a 9 da API (inclui 99 e 10)", fora("MESPRENAT", DOMINIO_CODIGO["mes_inicio_prenatal"]))
         for c in CONTAGENS:
             col = FEATURES_ORIGEM[c]
             v = num(col)
@@ -210,7 +212,10 @@ FEATURES_ORIGEM = {k: v for k, v in FEATURES.items()}
 def transformar(df, log):
     """Seleciona os 10 atributos do modelo, no formato original do SINASC."""
     out = pd.DataFrame(index=df.index)
-    out["idade_mae_faixa"] = df["FxEtPartur"].where(df["FxEtPartur"].isin(IDADE_VALIDAS))
+    idade = df["FxEtPartur"].str.replace("–", "-", regex=False)
+    ign = idade.eq("Ign")
+    log["idade_ignorada_tratada_como_ausente"] = int(ign.sum())
+    out["idade_mae_faixa"] = idade.where(idade.isin(IDADE_API))
     for nome, col in FEATURES.items():
         if nome != "idade_mae_faixa":
             out[nome] = _num(df[col])
@@ -224,6 +229,7 @@ def transformar(df, log):
         fora += int(m.sum())
         out.loc[m, nome] = np.nan
     log["valores_fora_do_dominio_tratados_como_ausentes"] = fora
+    log["mes_99_tratado_como_ausente"] = int((_num(df["MESPRENAT"]) == 99).sum())
     for c in out.columns:
         if c != "idade_mae_faixa":
             out[c] = out[c].astype("Int64")
@@ -301,25 +307,33 @@ def tabela_publicavel(proc):
 
 def contrato_api():
     """Contrato entre front, back-end e serviço de IA, conforme acordado com o grupo."""
+    categorias = {"escolaridade_mae", "estado_civil_mae", "tipo_gravidez"}
     campos = []
     for nome, col in FEATURES.items():
         if nome == "idade_mae_faixa":
-            tipo = "string"
-            valores = ["10-14", "15-19", "20-24", "25-29", "30-34", "35-39",
-                       "40-44", "45-49", ">=50", "Ign"]
-        elif nome in DOMINIO_CODIGO:
-            tipo = "integer"
-            valores = DOMINIO_CODIGO[nome]
+            tipo, valores = "string", IDADE_API
+            nulo = "Aceito; tratado como Ignorado"
+            obrigatorio = False
+        elif nome == "mes_inicio_prenatal":
+            tipo, valores = "integer", DOMINIO_CODIGO[nome]
+            nulo = "Aceito; significa não iniciado ou não informado"
+            obrigatorio = False
+        elif nome in categorias:
+            tipo, valores = "integer", DOMINIO_CODIGO[nome]
+            nulo = "Aceito; tratado como Ignorado"
+            obrigatorio = False
         else:
-            tipo = "integer"
-            valores = list(range(0, MAX_CONTAGEM_API + 1))
+            tipo, valores = "integer", list(range(0, MAX_CONTAGEM_API + 1))
+            nulo = "Rejeitado com erro 422"
+            obrigatorio = True
         campos.append({
             "nomeFrontBackend": NOME_API[nome],
             "nomeServicoIA": col,
             "descricao": DESCRICAO_FEATURE[nome],
             "tipo": tipo,
             "valoresValidos": valores,
-            "nulo_ou_vazio": "Tratado como Ignorado (não é rejeitado)",
+            "obrigatorio": obrigatorio,
+            "nulo": nulo,
         })
     return {
         "versao_dados": f"SINASC-SP-{ANO_REF}",
@@ -327,11 +341,11 @@ def contrato_api():
         "regras_gerais": [
             "Front -> back-end: usar nomeFrontBackend (camelCase).",
             "Back-end -> serviço de IA: usar nomeServicoIA (nomes originais do SINASC).",
-            "Campo não informado (null ou vazio) é tratado como Ignorado, e não gera erro 422.",
-            "O código 9 (99 em mesInicioPrenatal) também é aceito e é tratado como Ignorado.",
-            "Faixa etária é validada com hífen (25-29). O pipeline aceita também o travessão (25–29).",
-            f"Contagens obstétricas são validadas de 0 a {MAX_CONTAGEM_API}. Valores acima disso são rejeitados pela API.",
-            f"A sinalização de qualidade usa o limite de {MAX_CONTAGEM} e é separada da validação da API.",
+            "Código 9 é valor válido só em escolaridade, estadoCivil e tipoGravidez (Ignorado).",
+            "Faixa etária é validada com hífen (40-44). O valor desconhecido vai como null.",
+            "As 5 contagens são obrigatórias, de 0 a 15. null gera erro 422.",
+            "Regra entre campos: partosNormais + partosCesareos <= gestacoesAnteriores.",
+            f"Sinalização de qualidade (fora da API) usa o limite de {MAX_CONTAGEM}.",
         ],
         "campos": campos,
     }

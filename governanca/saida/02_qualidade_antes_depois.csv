@@ -7,7 +7,7 @@ antes,Acurácia,A4,"SEXO fora de M, F, I",0
 antes,Acurácia,A5,ESCMAE2010 fora do domínio SINASC,0
 antes,Acurácia,A6,ESTCIVMAE fora do domínio SINASC,0
 antes,Acurácia,A7,GRAVIDEZ fora do domínio SINASC,0
-antes,Acurácia,A8,MESPRENAT fora do domínio SINASC (ex.: 10),2
+antes,Acurácia,A8,MESPRENAT fora de 1 a 9 da API (inclui 99 e 10),112
 antes,Acurácia,A9,QTDGESTANT acima de 40 (implausível),0
 antes,Acurácia,A9,QTDPARTNOR acima de 40 (implausível),0
 antes,Acurácia,A9,QTDPARTCES acima de 40 (implausível),0

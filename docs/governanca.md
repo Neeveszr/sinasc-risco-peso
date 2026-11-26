@@ -83,7 +83,7 @@ há alvo.
 | Completude | PESO ausente | 1 | Excluído (sem alvo) |
 | Consistência | Duplicatas exatas | 5 | Excluídas |
 | Acurácia | PESO fora de 300 a 6.500 g | 13 | Mantido e listado para revisão |
-| Acurácia | Mês de início do pré-natal fora do domínio (10) | 2 | Tratado como ausente |
+| Acurácia | Mês de início do pré-natal fora de 1 a 9 da API (99 e 10) | 112 | Tratado como ausente (110 são 99, código de não informado; 2 são 10) |
 | Acurácia | Semanas de gestação fora de 22 a 44 | 71 | Variável não usada no modelo |
 | Acurácia | APGAR fora de 0 a 10 | 156 | Variável não usada no modelo |
 | Acurácia | Contagens obstétricas acima de 40 | 0 | Sem ação |
@@ -101,7 +101,7 @@ bebês reais de peso muito baixo, por isso ficam no treino até a revisão.
 Resultado: 120.786 registros de entrada e 120.780 no arquivo de treino (6 excluídos: 5
 duplicatas e 1 sem peso). Prevalência de baixo peso no treino: 10,32%.
 
-Completude após o tratamento: todas as variáveis do modelo têm até 0,76% de ausentes
+Completude após o tratamento: todas as variáveis do modelo têm até 0,85% de ausentes
 (`03_completude_variaveis.csv`). O mês de início do pré-natal é a que mais tem ausentes.
 
 Tempestividade: a base é de 2024, cerca de dois anos antes da data de referência do trabalho
@@ -140,9 +140,9 @@ gerencia os operadores.
 | Ver documentação do modelo (versão ao usuário) | Sim | Sim (completa) |
 | Criar, ativar, desativar e alterar perfis de usuários | Não | Sim |
 
-Decisão pendente do grupo, com o back-end: o cadastro público de operadores está aberto.
-A proposta é fechá-lo, deixando só o gestor criar operadores. Esta matriz assume essa
-proposta; se o grupo decidir manter o cadastro aberto, a linha de criação de usuários muda.
+Decisão tomada: o cadastro público foi removido (PR #12, já na `main`). Só o gestor/auditor
+cria contas. O primeiro gestor é criado a partir de `ADMIN_EMAIL` e `ADMIN_PASSWORD`, que
+devem ser definidos no ambiente, nunca com os valores de exemplo.
 
 Controles de segurança:
 - Criptografia em trânsito (HTTPS/TLS) e em repouso no banco de dados (proposto).
@@ -160,20 +160,29 @@ Controles de segurança:
 ## 8. Contrato de entrada da API (requisito 7.2)
 
 O contrato está em `06_contrato_entrada_api.json`. Para cada um dos 10 atributos ele traz:
-- `nomeFrontBackend`: nome no front e no back-end (camelCase).
-- `nomeServicoIA`: nome que o back-end envia ao serviço de IA (nome original do SINASC).
-- `valoresValidos`: lista de valores aceitos pela API.
+- `nomeFrontBackend`: nome usado pelo front e pelo back-end (camelCase).
+- `nomeServicoIA`: nome enviado pelo back-end ao serviço de IA (nome original do SINASC).
+- `valoresValidos`, `obrigatorio` e `nulo`: o que a API aceita e o que faz com cada caso.
 
 Regras acordadas com o grupo:
-- Campo não informado (null ou vazio) é tratado como "Ignorado". Não gera erro 422.
-- O código 9 (99 em mês de início do pré-natal) também é aceito e é tratado como "Ignorado".
-- A faixa etária é validada com hífen (25-29). O pipeline aceita também o travessão (25–29).
-- Contagens obstétricas são validadas de 0 a 15. Na base de 2024, 4 registros em cada uma das
-  colunas QTDGESTANT, QTDPARTNOR, QTDPARTCES e QTDFILMORT passam desse limite e seriam rejeitados
-  pela API. O limite de 40 continua como sinalização de qualidade (seção 5).
+- Escolaridade, estado civil e tipo de gravidez: código 9 é "Ignorado", e null também é
+  tratado como "Ignorado".
+- Mês de início do pré-natal: 1 a 9. Null significa "não iniciado ou não informado".
+  O código 99 não é aceito pela API.
+- Faixa etária com hífen (40-44). O desconhecido vai como null. O valor "Ign" não é aceito.
+- As 5 contagens (gestações anteriores, partos normais, partos cesáreos, filhos vivos e
+  perdas fetais) são obrigatórias, de 0 a 15. Null gera erro 422.
+- Regra entre campos: partos normais + partos cesáreos <= gestações anteriores.
 
-Antes da entrega, falta conferir os nomes camelCase com `frontend/README.md` e alinhar os
-valores com a equipe de IA (Marcus).
+Sobre a base de treino: a análise de qualidade (`analise_qualidade_2024.csv`) já segue o
+domínio da API, com "Ign" e 99 tratados como ausentes. O treino usa a base bruta com o pipeline
+de IA. Por isso, o pipeline deve tratar 99 e "Ign" como ausentes, para que o modelo veja no
+treino os mesmos valores que recebe na API. Isso precisa ser confirmado com a equipe de IA
+(Marcus).
+
+Na base de 2024, 4 registros em cada uma das colunas QTDGESTANT, QTDPARTNOR, QTDPARTCES e
+QTDFILMORT passam de 15 e seriam rejeitados pela API. O limite de 40 continua como
+sinalização de qualidade (seção 5).
 
 ## 9. Direitos do titular e retenção (intermediário)
 
@@ -194,8 +203,7 @@ valores com a equipe de IA (Marcus).
   obstétricas. Ambas definem apenas o que é sinalizado, não o que é excluído.
 - Definição de gestação anterior: confirmar se gestações sem parto entram em
   `QTDGESTANT`, porque isso decide os casos de K1 e K2.
-- Contrato da API: conferir os nomes camelCase com `frontend/README.md` e alinhar os valores
-  com a equipe de IA antes da entrega.
+- Treino e API: confirmar com a equipe de IA que o pipeline trata 99 e "Ign" como ausentes.
 - Base de 2024: o modelo reflete o período de referência e precisa de atualização periódica.
 - O modelo não tem validação externa.
 

@@ -6,7 +6,9 @@
   "registros_suspeitos_K1": 176,
   "registros_suspeitos_K2": 81,
   "registros_suspeitos_total_mantidos_e_marcados": 176,
-  "valores_fora_do_dominio_tratados_como_ausentes": 2,
+  "idade_ignorada_tratada_como_ausente": 1,
+  "valores_fora_do_dominio_tratados_como_ausentes": 112,
+  "mes_99_tratado_como_ausente": 110,
   "linhas_saida_treino": 120780,
   "prevalencia_baixo_peso_pct": 10.32
 }
