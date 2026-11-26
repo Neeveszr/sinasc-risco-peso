@@ -7,9 +7,11 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import br.edu.unifsa.sinasc.config.ValoresDeExemplo;
+
 /**
  * Cria o primeiro gestor/auditor se ADMIN_EMAIL e ADMIN_PASSWORD estiverem definidos.
- * Sem isso ninguém conseguiria criar gestores, já que o cadastro público só gera operadores.
+ * Sem isso ninguém conseguiria criar contas, já que só um gestor/auditor cria usuários.
  */
 @Component
 public class AdminInitializer implements ApplicationRunner {
@@ -35,6 +37,10 @@ public class AdminInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         if (email.isBlank() || senha.isBlank()) {
             log.info("ADMIN_EMAIL/ADMIN_PASSWORD não definidos: nenhum gestor inicial será criado.");
+            return;
+        }
+        if (ValoresDeExemplo.ehPlaceholder(senha)) {
+            log.warn("ADMIN_PASSWORD está com o valor de exemplo: gestor inicial não criado. Defina uma senha de verdade.");
             return;
         }
         if (senha.length() < 8 || senha.length() > 72) {

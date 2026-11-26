@@ -10,6 +10,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import br.edu.unifsa.sinasc.config.ValoresDeExemplo;
 import br.edu.unifsa.sinasc.usuario.Perfil;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -24,9 +25,14 @@ public class JwtService {
 
     public JwtService(@Value("${app.jwt.secret}") String segredo,
                       @Value("${app.jwt.expiration-minutes}") long expiracaoMinutos) {
+        if (ValoresDeExemplo.ehPlaceholder(segredo)) {
+            throw new IllegalStateException(
+                    "JWT_SECRET está com o valor de exemplo do .env.example; gere um segredo de verdade: openssl rand -hex 32");
+        }
         byte[] bytes = segredo.getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
-            throw new IllegalStateException("JWT_SECRET precisa ter pelo menos 32 caracteres");
+            throw new IllegalStateException(
+                    "JWT_SECRET precisa ter pelo menos 32 caracteres (gere um com: openssl rand -hex 32)");
         }
         this.chave = Keys.hmacShaKeyFor(bytes);
         this.expiracaoMinutos = expiracaoMinutos;
