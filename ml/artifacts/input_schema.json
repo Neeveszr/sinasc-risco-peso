@@ -15,9 +15,7 @@
                 "45-49",
                 ">=50"
             ],
-            "codigos_ignorados": [
-                "Ign"
-            ]
+            "tratamento_ausencia": "Enviar null quando a informacao for desconhecida."
         },
         "ESTCIVMAE": {
             "tipo": "integer",
@@ -120,7 +118,11 @@
         "MESPRENAT igual a 9 representa o nono mes.",
         "As regras da API podem ser mais restritivas que as do pipeline.",
         "O limite de 15 da API nao foi aplicado aos dados historicos de treinamento.",
-        "O contrato interno nao substitui o contrato publico da API."
+        "O contrato interno nao substitui o contrato publico da API.",
+        "FxEtPartur desconhecido deve ser enviado como null.",
+        "A ausencia de GRAVIDEZ pode alterar significativamente o score.",
+        "A ausencia de MESPRENAT pode alterar significativamente o score.",
+        "A ausencia de informacao nao implica maior risco clinico."
     ],
     "escopo": "Entrada interna do pipeline de IA",
     "validacao_api": {
@@ -132,7 +134,6 @@
         "pendencias_alinhamento": [
             "Aceitacao de contagens obstetricas nulas.",
             "Aceitacao de MESPRENAT igual a 99.",
-            "Aceitacao de Ign como faixa etaria.",
             "Validacao de consistencia entre partos e gestacoes.",
             "Tratamento de campos vazios ou omitidos."
         ]

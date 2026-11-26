@@ -61,19 +61,27 @@
         "classe_positiva": 1,
         "threshold": 0.43,
         "score_calibrado": false,
+        "tipo_score": "Score experimental nao calibrado",
+        "metodo_definicao_faixas": {
+            "metodo": "Percentis",
+            "referencia": "Predicoes out-of-fold do treinamento",
+            "percentil_baixo_medio": 50,
+            "percentil_medio_alto": 85
+        },
+        "faixas_independentes_da_classe": true,
         "faixas": {
-            "baixo": {
+            "BAIXO": {
                 "min": 0.0,
-                "max": 0.4,
+                "max": 0.4495018644184755,
                 "max_inclusivo": false
             },
-            "moderado": {
-                "min": 0.4,
-                "max": 0.43,
+            "MEDIO": {
+                "min": 0.4495018644184755,
+                "max": 0.5042154221007533,
                 "max_inclusivo": false
             },
-            "alto": {
-                "min": 0.43,
+            "ALTO": {
+                "min": 0.5042154221007533,
                 "max": 1.0,
                 "max_inclusivo": true
             }
@@ -100,7 +108,11 @@
         "pandas": "3.1.1",
         "numpy": "2.4.6",
         "scipy": "1.17.1",
-        "joblib": "1.6.0"
+        "joblib": "1.6.0",
+        "shap": "0.51.0",
+        "fastapi": "0.165.0",
+        "uvicorn": "0.54.0",
+        "pydantic": "2.14.4"
     },
     "limitacoes": [
         "Modelo exclusivamente academico e experimental.",
@@ -109,6 +121,94 @@
         "Scores nao calibrados como probabilidades reais.",
         "Faixas de score sem validacao clinica.",
         "Base restrita ao municipio de Sao Paulo em 2024.",
-        "Ausencia de validacao externa."
-    ]
+        "Ausencia de validacao externa.",
+        "A ausencia de GRAVIDEZ pode aumentar significativamente o score.",
+        "GRAVIDEZ ausente possui baixa representatividade no treinamento.",
+        "A ausencia de MESPRENAT pode aumentar significativamente o score.",
+        "A sensibilidade foi demonstrada em um registro ficticio e nao comprova comportamento universal.",
+        "As faixas por percentis representam posicoes relativas na distribuicao de referencia.",
+        "A distribuicao das faixas pode variar em novos dados.",
+        "A faixa ALTO concentra aproximadamente 32,94% dos casos positivos nas predicoes out-of-fold.",
+        "O recall do classificador nao equivale a proporcao de casos capturados pela faixa ALTO."
+    ],
+    "avaliacao_faixas_oof": {
+        "BAIXO": {
+            "registros": 48261,
+            "casos_positivos": 3446,
+            "percentual_da_base": 49.94721808246398,
+            "proporcao_positivos_pct": 7.140341062141274,
+            "percentual_casos_capturados": 34.54636591478697
+        },
+        "MEDIO": {
+            "registros": 33869,
+            "casos_positivos": 3243,
+            "percentual_da_base": 35.052367941712205,
+            "proporcao_positivos_pct": 9.57512769789483,
+            "percentual_casos_capturados": 32.51127819548872
+        },
+        "ALTO": {
+            "registros": 14494,
+            "casos_positivos": 3286,
+            "percentual_da_base": 15.000413975823811,
+            "proporcao_positivos_pct": 22.671450255278046,
+            "percentual_casos_capturados": 32.94235588972431
+        }
+    },
+    "sensibilidade_ausencia": {
+        "tipo_teste": "Registro ficticio",
+        "score_referencia": 0.3390870924107104,
+        "atributos": {
+            "GRAVIDEZ": {
+                "score_alterado": 0.7322745963086003,
+                "variacao_score": 0.39318750389788987,
+                "faixa_alterada": "ALTO"
+            },
+            "MESPRENAT": {
+                "score_alterado": 0.5254668644929407,
+                "variacao_score": 0.18637977208223028,
+                "faixa_alterada": "ALTO"
+            },
+            "FxEtPartur": {
+                "score_alterado": 0.38496934802015303,
+                "variacao_score": 0.045882255609442646,
+                "faixa_alterada": "BAIXO"
+            },
+            "ESTCIVMAE": {
+                "score_alterado": 0.36960612421270633,
+                "variacao_score": 0.030519031801995944,
+                "faixa_alterada": "BAIXO"
+            },
+            "QTDFILVIVO": {
+                "score_alterado": 0.3568125836926731,
+                "variacao_score": 0.017725491281962713,
+                "faixa_alterada": "BAIXO"
+            },
+            "QTDPARTCES": {
+                "score_alterado": 0.34264308062518994,
+                "variacao_score": 0.003555988214479555,
+                "faixa_alterada": "BAIXO"
+            },
+            "QTDPARTNOR": {
+                "score_alterado": 0.3418488055772855,
+                "variacao_score": 0.002761713166575086,
+                "faixa_alterada": "BAIXO"
+            },
+            "QTDFILMORT": {
+                "score_alterado": 0.33908709241071044,
+                "variacao_score": 5.551115123125783e-17,
+                "faixa_alterada": "BAIXO"
+            },
+            "QTDGESTANT": {
+                "score_alterado": 0.3290864020977242,
+                "variacao_score": -0.010000690312986171,
+                "faixa_alterada": "BAIXO"
+            },
+            "ESCMAE2010": {
+                "score_alterado": 0.3244524241036936,
+                "variacao_score": -0.014634668307016763,
+                "faixa_alterada": "BAIXO"
+            }
+        }
+    },
+    "data_atualizacao": "2026-11-26T13:42:02.698436+00:00"
 }
