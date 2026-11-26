@@ -13,7 +13,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-/** Registro de acessos (governança, seção 6): quem fez o quê e quando. Só é inserido, nunca alterado. */
+/**
+ * Registro de acessos (governança, seção 6): quem fez o quê e quando. Só é inserido, nunca alterado.
+ * Em falhas de login com e-mail inexistente não há usuário: nesse caso "usuario" é nulo
+ * e "identificador" guarda o e-mail informado.
+ */
 @Entity
 @Table(name = "log_acesso")
 public class LogAcesso {
@@ -22,9 +26,12 @@ public class LogAcesso {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
+
+    @Column(length = 160)
+    private String identificador;
 
     @Column(nullable = false, length = 40)
     private String acao;
@@ -39,6 +46,9 @@ public class LogAcesso {
 
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+
+    public String getIdentificador() { return identificador; }
+    public void setIdentificador(String identificador) { this.identificador = identificador; }
 
     public String getAcao() { return acao; }
     public void setAcao(String acao) { this.acao = acao; }

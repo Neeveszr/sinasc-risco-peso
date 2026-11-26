@@ -1,0 +1,141 @@
+{
+    "versao": "1.0.0",
+    "atributos": {
+        "FxEtPartur": {
+            "tipo": "string",
+            "descricao": "Faixa etaria materna",
+            "valores_aceitos": [
+                "10-14",
+                "15-19",
+                "20-24",
+                "25-29",
+                "30-34",
+                "35-39",
+                "40-44",
+                "45-49",
+                ">=50"
+            ],
+            "tratamento_ausencia": "Enviar null quando a informacao for desconhecida."
+        },
+        "ESTCIVMAE": {
+            "tipo": "integer",
+            "descricao": "Estado civil da mae",
+            "valores_aceitos": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "codigos_ignorados": [
+                9
+            ]
+        },
+        "ESCMAE2010": {
+            "tipo": "integer",
+            "descricao": "Escolaridade materna",
+            "valores_aceitos": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "codigos_ignorados": [
+                9
+            ]
+        },
+        "GRAVIDEZ": {
+            "tipo": "integer",
+            "descricao": "Tipo de gravidez",
+            "valores_aceitos": [
+                1,
+                2,
+                3
+            ],
+            "codigos_ignorados": [
+                9
+            ]
+        },
+        "QTDGESTANT": {
+            "tipo": "integer",
+            "descricao": "Gestacoes anteriores",
+            "minimo": 0
+        },
+        "QTDPARTNOR": {
+            "tipo": "integer",
+            "descricao": "Partos normais anteriores",
+            "minimo": 0
+        },
+        "QTDPARTCES": {
+            "tipo": "integer",
+            "descricao": "Partos cesareos anteriores",
+            "minimo": 0
+        },
+        "QTDFILVIVO": {
+            "tipo": "integer",
+            "descricao": "Filhos vivos",
+            "minimo": 0
+        },
+        "QTDFILMORT": {
+            "tipo": "integer",
+            "descricao": "Perdas fetais e abortos",
+            "minimo": 0
+        },
+        "MESPRENAT": {
+            "tipo": "integer",
+            "descricao": "Mes de inicio do pre-natal",
+            "minimo": 1,
+            "maximo": 9,
+            "codigos_ignorados": [
+                99
+            ]
+        }
+    },
+    "campos_obrigatorios": [
+        "FxEtPartur",
+        "ESTCIVMAE",
+        "ESCMAE2010",
+        "GRAVIDEZ",
+        "QTDGESTANT",
+        "QTDPARTNOR",
+        "QTDPARTCES",
+        "QTDFILVIVO",
+        "QTDFILMORT",
+        "MESPRENAT"
+    ],
+    "aceita_valores_nulos": true,
+    "permite_campos_extras": false,
+    "observacoes": [
+        "Todos os dez campos devem estar presentes.",
+        "Valores desconhecidos podem ser enviados como null.",
+        "Nao enviar atributos derivados.",
+        "Nao realizar one-hot encoding externamente.",
+        "O pipeline realiza o pre-processamento.",
+        "Utilizacao exclusivamente academica.",
+        "Codigos ignorados sao tratados como ausentes pelo pipeline.",
+        "MESPRENAT igual a 9 representa o nono mes.",
+        "As regras da API podem ser mais restritivas que as do pipeline.",
+        "O limite de 15 da API nao foi aplicado aos dados historicos de treinamento.",
+        "O contrato interno nao substitui o contrato publico da API.",
+        "FxEtPartur desconhecido deve ser enviado como null.",
+        "A ausencia de GRAVIDEZ pode alterar significativamente o score.",
+        "A ausencia de MESPRENAT pode alterar significativamente o score.",
+        "A ausencia de informacao nao implica maior risco clinico."
+    ],
+    "escopo": "Entrada interna do pipeline de IA",
+    "validacao_api": {
+        "limite_contagens_obstetricas": {
+            "minimo": 0,
+            "maximo": 15
+        },
+        "responsabilidade": "Validacao das requisicoes pelo servico de IA.",
+        "pendencias_alinhamento": [
+            "Aceitacao de contagens obstetricas nulas.",
+            "Aceitacao de MESPRENAT igual a 99.",
+            "Validacao de consistencia entre partos e gestacoes.",
+            "Tratamento de campos vazios ou omitidos."
+        ]
+    }
+}

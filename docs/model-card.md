@@ -16,3 +16,14 @@ Responsável: JP Lima.
 | **Limiar de decisão e faixas de risco** | TODO |
 | **Limitações conhecidas** | TODO |
 | **Usos indevidos** | TODO (ex.: negar atendimento, decisão automática sem revisão humana, uso fora do município de São Paulo) |
+
+## Contagem de registros: modelo × governança
+
+O total de registros do treino pode não bater com o do relatório de governança ([`docs/governanca.md`](governanca.md)), porque cada etapa aplica uma regra diferente sobre o mesmo arquivo de 120.786 linhas:
+
+| Etapa | O que exclui | O que mantém |
+|-------|--------------|--------------|
+| Governança (`governanca/governanca_sinasc.py`) | 5 duplicatas exatas e 1 registro sem peso (sobram 120.780) | Pesos fora de 300 a 6.500 g, só sinalizados como suspeitos |
+| Modelo (`ml/src/data_preparation.py`) | Registros sem peso, com peso 0 ou com o código 9999 | As duplicatas exatas |
+
+Os números da governança descrevem a qualidade da base; o total usado no treino é o que sai do pipeline do modelo e deve ser registrado aqui junto com as métricas.

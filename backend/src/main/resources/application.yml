@@ -20,8 +20,8 @@ spring:
     enabled: true
   jackson:
     deserialization:
-      # Campo desconhecido no JSON vira erro 400 (ex.: tentar enviar "perfil" no cadastro público
-      # ou "peso" na predição).
+      # Campo desconhecido no JSON vira erro 400 (ex.: tentar enviar "peso" na predição
+      # ou um campo que não existe no cadastro).
       fail-on-unknown-properties: true
   data:
     web:

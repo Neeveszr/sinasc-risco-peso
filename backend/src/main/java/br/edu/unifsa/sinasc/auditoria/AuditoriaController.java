@@ -27,12 +27,14 @@ public class AuditoriaController {
         this.auditoriaService = auditoriaService;
     }
 
-    @Operation(summary = "Lista os acessos registrados", description = "Filtro opcional por usuarioId")
+    @Operation(summary = "Lista os acessos registrados",
+            description = "Filtros opcionais: usuarioId e acao (ex.: LOGIN_FALHA para ver as tentativas de login que falharam)")
     @GetMapping("/acessos")
     @PreAuthorize(Permissoes.GESTOR_AUDITOR)
     public Page<LogAcessoResponse> acessos(
             @RequestParam(required = false) Long usuarioId,
+            @RequestParam(required = false) String acao,
             @PageableDefault(size = 20, sort = "criadoEm", direction = Sort.Direction.DESC) Pageable pageable) {
-        return auditoriaService.listar(usuarioId, pageable);
+        return auditoriaService.listar(usuarioId, acao, pageable);
     }
 }

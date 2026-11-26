@@ -38,6 +38,18 @@ class JwtServiceTest {
     }
 
     @Test
+    void rejeitaSegredoDeExemploDoEnvExample() {
+        String exemplo = "troque-por-um-segredo-aleatorio-com-pelo-menos-32-caracteres";
+
+        assertThrows(IllegalStateException.class, () -> new JwtService(exemplo, 5));
+    }
+
+    @Test
+    void rejeitaSegredoVazio() {
+        assertThrows(IllegalStateException.class, () -> new JwtService("", 5));
+    }
+
+    @Test
     void rejeitaSegredoCurto() {
         assertThrows(IllegalStateException.class, () -> new JwtService("curto", 5));
     }
