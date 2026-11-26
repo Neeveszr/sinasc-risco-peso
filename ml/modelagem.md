@@ -426,6 +426,7 @@ Executar os notebooks na seguinte ordem:
 2. `02_analise_preprocessamento.ipynb`
 3. `03_treinamento_modelos.ipynb`
 4. `04_avaliacao_faixas_teste.ipynb`
+
 Para testar o modelo exportado:
 
 ```bash
@@ -452,15 +453,15 @@ A explicabilidade com SHAP, a implementação do serviço FastAPI e a consolida�
 
 ### 17.1. Orientações de integração após revisão
 
-- Adotar o campo `score` em substituição a `probabilidade`, mediante alinhamento do contrato público entre IA, Backend e Frontend. Não apresentar o score como percentual de chance.
+- Utilizar o campo `score` em substituição a `probabilidade`. O contrato público entre Backend e Frontend já adota `score` (PR #16) e o front não o apresenta como percentual de chance; o serviço FastAPI deve devolver o campo nesse formato.
 - Consultar os limites de apresentação diretamente em `metadata.json` e utilizar as categorias BAIXO, MEDIO e ALTO.
 - Preservar o limiar binário de 0,43, independentemente das faixas.
 - Enviar `null` para faixa etária desconhecida. O código histórico `Ign` continua sendo tratado internamente pelo pipeline, mas não integra os valores aceitos no contrato de entrada atualizado.
 - Disponibilizar `ml/src` no caminho de importação Python antes de carregar o Joblib, permitindo localizar os módulos personalizados, como no teste independente.
 - Utilizar as versões fixadas em `ml/requirements.txt`.
-- Sinalizar a ausência de GRAVIDEZ e MESPRENAT na interface acadêmica e alinhar as regras de preenchimento com a API.
+- O front exige o tipo de gravidez (GRAVIDEZ) e envia MESPRENAT nulo apenas quando o pré-natal não foi iniciado. As mesmas regras de preenchimento ainda devem ser confirmadas na API.
 
-A versão do modelo permanece 1.0.0, pois o pipeline serializado não foi alterado. A atualização do contrato público, a integração efetiva do serviço, a explicabilidade e a consolidação do Model Card dependem de alinhamento com os responsáveis.
+A versão do modelo permanece 1.0.0, pois o pipeline serializado não foi alterado. O contrato público já adota `score`; a integração efetiva do serviço, a explicabilidade e a consolidação do Model Card dependem de alinhamento com os responsáveis.
 
 ## 18. Análise de sensibilidade a valores ausentes
 
@@ -503,7 +504,7 @@ Esses resultados são associações descritivas e não comprovam causalidade. O 
 - A faixa ALTO concentra apenas 32,94% dos casos positivos nas predições out-of-fold e 33,80% no conjunto de teste. Esses indicadores não equivalem ao recall do classificador.
 - Sensibilidade à ausência de GRAVIDEZ e MESPRENAT demonstrada em um único registro fictício, sem avaliação agregada da estabilidade dos scores.
 - Poucos exemplos de GRAVIDEZ ausente no treinamento.
-- O score não deve ser apresentado como percentual de chance; o contrato público ainda precisa ser alinhado.
+- O score não deve ser apresentado como percentual de chance. O contrato público já usa `score` e o front exibe apenas a pontuação e a faixa; o serviço FastAPI ainda precisa seguir o mesmo formato.
 
 O modelo não deve ser utilizado como ferramenta de diagnóstico, triagem clínica ou recomendação de condutas médicas.
 
