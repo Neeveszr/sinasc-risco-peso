@@ -11,6 +11,14 @@ FAIXAS = {
     "ALTO": ("Risco alto", "red", "Priorizar esta gestante no acompanhamento da equipe."),
 }
 
+# O que cada faixa significou nos dados de treino do modelo 1.0.0 (ml/artifacts/metadata.json,
+# "avaliacao_faixas_oof"): de cada 100 gestantes na faixa, quantas tiveram bebê com baixo peso.
+# Só vale para essa versão; se o modelo mudar, os números mudam.
+REFERENCIA_FAIXAS = {
+    "1.0.0": {"BAIXO": 7, "MEDIO": 10, "ALTO": 23},
+}
+MEDIA_GERAL = 10
+
 st.title("Resultado")
 
 resultado = st.session_state.get("ultimo_resultado")
@@ -22,7 +30,19 @@ if not resultado:
 titulo, cor, orientacao = FAIXAS.get(resultado["faixaRisco"], (resultado["faixaRisco"], "gray", ""))
 st.header(f":{cor}[{titulo}]")
 st.write(orientacao)
-st.metric("Chance estimada de baixo peso ao nascer", f"{resultado['probabilidade'] * 100:.0f}%")
+
+referencia = REFERENCIA_FAIXAS.get(resultado.get("versaoModelo"), {}).get(resultado["faixaRisco"])
+if referencia is not None:
+    st.write(
+        f"Nos dados usados para treinar o modelo, de cada 100 gestantes nesta faixa, cerca de **{referencia}** "
+        f"tiveram bebê com baixo peso (a média geral foi de {MEDIA_GERAL} em cada 100)."
+    )
+
+st.metric(
+    "Pontuação do modelo (de 0 a 1)", f"{resultado['score']:.2f}".replace(".", ","),
+    help="Serve para ordenar as gestantes por risco e definir a faixa. "
+         "Não é a chance de o bebê nascer com baixo peso.",
+)
 
 st.subheader("O que mais pesou nesta avaliação")
 fatores = resultado.get("fatores") or []

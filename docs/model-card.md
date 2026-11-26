@@ -8,7 +8,7 @@ Responsável: JP Lima.
 | **Data de treino** | TODO |
 | **Finalidade** | Apoiar a priorização do acompanhamento pré-natal de gestantes com maior risco de baixo peso ao nascer (< 2.500 g). Não substitui o julgamento clínico |
 | **Usuário** | Equipe de saúde da família da UBS e agentes comunitários de saúde |
-| **Dados utilizados** | SINASC, município de São Paulo, ano 2024 (120.785 registros com peso válido). Dez atributos mantidos, listados com justificativa em [`ml/selecao_atributos.md`](../ml/selecao_atributos.md) |
+| **Dados utilizados** | SINASC, município de São Paulo, ano 2024 (120.780 registros após o tratamento: 96.624 para treino e 24.156 para teste). Dez atributos mantidos, listados com justificativa em [`ml/selecao_atributos.md`](../ml/selecao_atributos.md) |
 | **Colunas removidas (vazamento)** | 27 colunas removidas, com a justificativa de cada uma em [`ml/selecao_atributos.md`](../ml/selecao_atributos.md) |
 | **Modelo e pré-processamento** | TODO |
 | **Métrica principal e justificativa** | TODO |
@@ -19,11 +19,9 @@ Responsável: JP Lima.
 
 ## Contagem de registros: modelo × governança
 
-O total de registros do treino pode não bater com o do relatório de governança ([`docs/governanca.md`](governanca.md)), porque cada etapa aplica uma regra diferente sobre o mesmo arquivo de 120.786 linhas:
+O modelo e o relatório de governança ([`docs/governanca.md`](governanca.md)) partem do mesmo arquivo de 120.786 linhas e chegam ao mesmo total:
 
-| Etapa | O que exclui | O que mantém |
-|-------|--------------|--------------|
-| Governança (`governanca/governanca_sinasc.py`) | 5 duplicatas exatas e 1 registro sem peso (sobram 120.780) | Pesos fora de 300 a 6.500 g, só sinalizados como suspeitos |
-| Modelo (`ml/src/data_preparation.py`) | Registros sem peso, com peso 0 ou com o código 9999 | As duplicatas exatas |
-
-Os números da governança descrevem a qualidade da base; o total usado no treino é o que sai do pipeline do modelo e deve ser registrado aqui junto com as métricas.
+- **Excluídos:** 5 duplicatas exatas e 1 registro sem peso.
+- **Resultado:** 120.780 registros, com 10,32% de baixo peso.
+- **Divisão do modelo:** 96.624 para treino e 24.156 para teste, estratificada pela variável-alvo (`ml/modelagem.md` e `ml/artifacts/metadata.json`).
+- **Mantidos:** os 13 pesos fora de 300 a 6.500 g, que a governança só sinaliza para revisão.
