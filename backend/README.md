@@ -22,8 +22,10 @@ O back-end chama o serviço Python em `MODEL_SERVICE_URL` (`POST /predict`). Con
 ### Pré-requisitos
 
 - Java 21 (JDK)
-- Maven 3.9+ (`brew install maven` no macOS)
+- Maven 3.9+ (`brew install maven` no macOS; no Windows, instale pelo site do Maven e confira com `mvn -v`)
 - Docker (para o PostgreSQL 16) — ou um PostgreSQL local
+
+> **Windows:** use o **PowerShell**. Onde o passo muda em relação ao macOS/Linux, há a versão em PowerShell logo abaixo.
 
 ### 1. Variáveis de ambiente
 
@@ -31,13 +33,39 @@ Copie `.env.example` para `.env` (não vai para o Git) e preencha. O `.env.examp
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
-| `JWT_SECRET` | **sim** | Segredo do JWT. Gere com `openssl rand -hex 32`. A API não sobe se estiver vazio, com menos de 32 caracteres ou com valor de exemplo |
+| `JWT_SECRET` | **sim** | Segredo do JWT. Gere com `openssl rand -hex 32` (macOS/Linux) ou o comando PowerShell abaixo (Windows). A API não sobe se estiver vazio, com menos de 32 caracteres ou com valor de exemplo |
 | `DB_URL` | não | Padrão `jdbc:postgresql://localhost:5432/sinasc` |
 | `DB_USER` / `DB_PASSWORD` | não | Padrão `sinasc` / `sinasc` |
 | `JWT_EXPIRATION_MINUTES` | não | Padrão `120` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | não | Cria o primeiro gestor/auditor (senha de 8 a 72 caracteres, de verdade: valores de exemplo são ignorados). **Sem isso ninguém cria contas** |
 | `CORS_ORIGINS` | não | Origens do front, separadas por vírgula |
 | `MODEL_SERVICE_URL` | não | Padrão `http://localhost:8000` |
+
+#### Gerar o `JWT_SECRET`
+
+macOS/Linux:
+
+```bash
+openssl rand -hex 32
+```
+
+Windows (PowerShell), para **desenvolvimento local**, sem `openssl`:
+
+```powershell
+-join ((1..32) | ForEach-Object { '{0:x2}' -f (Get-Random -Maximum 256) })
+```
+
+O `Get-Random` **não é criptográfico**: serve só para testar no seu computador. Para o **deploy**, gere com um gerador criptográfico:
+
+```powershell
+# PowerShell 7
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+
+# Windows PowerShell 5.1
+$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | ForEach-Object { '{0:x2}' -f $_ })
+```
+
+Cole o resultado em `JWT_SECRET=` no `.env`, sem aspas e sem espaços.
 
 ### 2. Banco de dados
 
@@ -50,15 +78,27 @@ As tabelas são criadas sozinhas pelo Flyway (`src/main/resources/db/migration`)
 
 ### 3. Subir a API
 
+macOS/Linux:
+
 ```bash
 cd backend
-set -a; source .env; set +a      # carrega as variáveis (macOS/Linux)
+set -a; source .env; set +a      # carrega as variáveis do .env
 mvn spring-boot:run
 ```
 
+Windows (PowerShell):
+
+```powershell
+cd backend
+Get-Content .env | Where-Object { $_ -match '^\s*[^#].*=' } | ForEach-Object { $k, $v = $_ -split '=', 2; Set-Item "env:$($k.Trim())" $v.Trim() }
+mvn spring-boot:run
+```
+
+As variáveis carregadas valem só naquela janela do PowerShell: se abrir outra, rode o `Get-Content` de novo.
+
 - API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger-ui.html
-- Testes: `mvn test`
+- Testes: `mvn test` (não precisa de Docker nem de PostgreSQL: os testes de integração usam um banco H2 em memória)
 
 ### Com Docker (tudo junto)
 
