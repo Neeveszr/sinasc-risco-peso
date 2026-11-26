@@ -42,7 +42,10 @@ CATEGORICOS = [
      "opcoes": {f: "50 ou mais" if f == ">=50" else f.replace("-", " a ") for f in FAIXAS_ETARIAS}},
     {"api": "estadoCivil", "sinasc": "ESTCIVMAE", "rotulo": "Situação conjugal", "opcoes": ESTADO_CIVIL},
     {"api": "escolaridade", "sinasc": "ESCMAE2010", "rotulo": "Escolaridade da gestante", "opcoes": ESCOLARIDADE},
-    {"api": "tipoGravidez", "sinasc": "GRAVIDEZ", "rotulo": "Tipo de gravidez", "opcoes": TIPO_GRAVIDEZ},
+    # Obrigatório no front: o modelo trata "não informado" como sinal de risco alto (ml/modelagem.md),
+    # então deixar o campo em branco por descuido mudaria o resultado.
+    {"api": "tipoGravidez", "sinasc": "GRAVIDEZ", "rotulo": "Tipo de gravidez", "opcoes": TIPO_GRAVIDEZ,
+     "obrigatorio": True},
 ]
 
 CONTAGENS = [
@@ -67,6 +70,10 @@ def validar(dados):
     A validação que vale é a do back-end; esta só evita ida e volta desnecessária.
     """
     erros = []
+    for campo in CATEGORICOS:
+        if campo.get("obrigatorio") and dados.get(campo["api"]) is None:
+            erros.append(f"{campo['rotulo']}: selecione uma opção.")
+
     for campo in CONTAGENS:
         valor = dados.get(campo["api"])
         if valor is None or not 0 <= valor <= MAX_CONTAGEM:

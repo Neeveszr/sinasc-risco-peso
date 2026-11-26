@@ -64,7 +64,7 @@ tabela = pd.DataFrame({
     "Data e hora": pd.to_datetime(tabela["criadoEm"], utc=True).dt.tz_convert("America/Sao_Paulo").dt.strftime("%d/%m/%Y %H:%M"),
     "Usuário": tabela.get("usuarioNome", tabela.get("usuarioId")),
     "Faixa de risco": tabela["faixaRisco"].map(FAIXAS).fillna(tabela["faixaRisco"]),
-    "Chance (%)": (tabela["probabilidade"] * 100).round(0).astype(int),
+    "Pontuação": tabela["score"].round(2),
     "Versão do modelo": tabela["versaoModelo"],
     "Revisão solicitada": tabela["revisaoSolicitada"].map({True: "Sim", False: "Não"}),
 })

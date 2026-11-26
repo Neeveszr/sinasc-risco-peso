@@ -5,6 +5,7 @@ import java.time.Instant;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /** Entradas e saídas de /api/usuarios. A senha (ou o hash) nunca aparece nas respostas. */
@@ -32,7 +33,11 @@ public final class UsuarioDtos {
             Perfil perfil) {
     }
 
-    /** Atualização completa (PUT). A senha é opcional: se vier vazia ou nula, não muda. */
+    /**
+     * Atualização completa (PUT). A senha é opcional: se for omitida (null), não muda.
+     * Se for enviada, precisa ter de 8 a 72 caracteres e não pode ser só espaços;
+     * string vazia ("") é rejeitada com 422, então o front deve omitir o campo para não trocar a senha.
+     */
     public record UsuarioAtualizarRequest(
             @NotBlank(message = "nome é obrigatório")
             @Size(max = 120, message = "nome deve ter no máximo 120 caracteres")
@@ -44,6 +49,7 @@ public final class UsuarioDtos {
             String email,
 
             @Size(min = 8, max = 72, message = "senha deve ter entre 8 e 72 caracteres")
+            @Pattern(regexp = ".*\\S.*", message = "senha não pode ser só espaços")
             String senha,
 
             @NotNull(message = "ativo é obrigatório")

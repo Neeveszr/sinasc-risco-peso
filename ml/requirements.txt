@@ -1,10 +1,16 @@
-pandas
-numpy
-scikit-learn
-shap
-joblib
+# Dependências utilizadas no treinamento do modelo
+pandas==3.1.1
+numpy==2.4.6
+scikit-learn==1.9.1
+scipy==1.17.1
+joblib==1.6.0
+
+# Análise e explicabilidade
+shap==0.51.0
 matplotlib
 jupyter
-fastapi
-uvicorn
-pydantic
+
+# Serviço de IA
+fastapi==0.165.0
+uvicorn==0.54.0
+pydantic==2.14.4

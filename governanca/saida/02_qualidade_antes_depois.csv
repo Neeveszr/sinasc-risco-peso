@@ -1,0 +1,25 @@
+﻿fase,dimensao,regra,descricao,violacoes
+antes,Acurácia,A1,"PESO fora de 300 a 6500 g (sinalizado, não excluído)",13
+antes,Completude,C1,PESO ausente (sem alvo; excluído),1
+antes,Acurácia,A2,Semanas de gestação fora de 22 a 44,71
+antes,Acurácia,A3,APGAR 1º ou 5º minuto fora de 0 a 10,156
+antes,Acurácia,A4,"SEXO fora de M, F, I",0
+antes,Acurácia,A5,ESCMAE2010 fora do domínio SINASC,0
+antes,Acurácia,A6,ESTCIVMAE fora do domínio SINASC,0
+antes,Acurácia,A7,GRAVIDEZ fora do domínio SINASC,0
+antes,Acurácia,A8,MESPRENAT fora de 1 a 9 da API (inclui 99 e 10),112
+antes,Acurácia,A9,QTDGESTANT acima de 40 (implausível),0
+antes,Acurácia,A9,QTDPARTNOR acima de 40 (implausível),0
+antes,Acurácia,A9,QTDPARTCES acima de 40 (implausível),0
+antes,Acurácia,A9,QTDFILVIVO acima de 40 (implausível),0
+antes,Acurácia,A9,QTDFILMORT acima de 40 (implausível),0
+antes,Tempestividade,T1,Data de nascimento fora do ano de referência 2024,0
+antes,Consistência,K1,Partos anteriores maiores que gestações anteriores (sinalizado),176
+antes,Consistência,K2,Número de filhos menor que partos anteriores (sinalizado),81
+antes,Consistência,K3,Zero consultas de pré-natal com mês de início informado,56
+antes,Consistência,K4,Registros duplicados exatos (excluídos),5
+depois,Acurácia,A10,Valores fora do domínio após tratamento: escolaridade_mae,0
+depois,Acurácia,A10,Valores fora do domínio após tratamento: estado_civil_mae,0
+depois,Acurácia,A10,Valores fora do domínio após tratamento: tipo_gravidez,0
+depois,Acurácia,A10,Valores fora do domínio após tratamento: mes_inicio_prenatal,0
+depois,Completude,C2,Alvo baixo_peso ausente,0

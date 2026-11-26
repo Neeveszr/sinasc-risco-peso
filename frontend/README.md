@@ -10,9 +10,9 @@ O front conversa **só com a API Spring Boot**: nunca chama o serviço do modelo
 |------|---------|--------|----------|
 | Login | `paginas/login.py` | público | E-mail e senha (`POST /api/auth/login`) |
 | Nova predição | `paginas/predicao.py` | operador | Formulário dos 10 atributos, com validação |
-| Resultado | `paginas/resultado.py` | operador | Faixa de risco em linguagem do usuário, chance estimada, principais fatores, aviso de apoio à decisão e botão **Solicitar revisão humana** |
+| Resultado | `paginas/resultado.py` | operador | Faixa de risco em linguagem do usuário, o que a faixa significou nos dados de treino, pontuação do modelo (não é chance), principais fatores, aviso de apoio à decisão e botão **Solicitar revisão humana** |
 | Auditoria | `paginas/auditoria.py` | gestor/auditor | Histórico com filtros por período, usuário e faixa de risco, e pedidos de revisão |
-| Sobre o modelo | `paginas/transparencia.py` | todos | Model card para o usuário (provisório até a avaliação final) |
+| Sobre o modelo | `paginas/transparencia.py` | todos | Model card para o usuário: dados, como ler a pontuação e as faixas, desempenho e limitações do modelo 1.0.0 |
 | Privacidade | `paginas/privacidade.py` | todos | Dados coletados, finalidade, retenção e quem acessa (provisório até o documento de governança) |
 
 Outros arquivos: `app.py` (entrada e menu por perfil), `api.py` (cliente da API), `campos.py` (os 10 atributos, rótulos e validação), `sessao.py` (token e usuário logado), `mock.py` (respostas do modo demonstração).
@@ -93,7 +93,7 @@ Os campos chegam em camelCase; o back-end converte para as colunas do SINASC ant
 | `faixaEtaria` | `FxEtPartur` | `10-14` … `45-49`, `>=50` ou `null` |
 | `estadoCivil` | `ESTCIVMAE` | 1 a 5 ou `null` |
 | `escolaridade` | `ESCMAE2010` | 0 a 5 ou `null` |
-| `tipoGravidez` | `GRAVIDEZ` | 1 a 3 ou `null` |
+| `tipoGravidez` | `GRAVIDEZ` | 1 a 3 ou `null` (o front sempre envia 1 a 3: o campo é obrigatório na tela) |
 | `gestacoesAnteriores` | `QTDGESTANT` | 0 a 15 |
 | `partosNormais` | `QTDPARTNOR` | 0 a 15 |
 | `partosCesareos` | `QTDPARTCES` | 0 a 15 |
@@ -103,12 +103,14 @@ Os campos chegam em camelCase; o back-end converte para as colunas do SINASC ant
 
 Regra de consistência validada no front (e que deve valer também na API): `partosNormais + partosCesareos <= gestacoesAnteriores`.
 
+O tipo de gravidez é obrigatório no front porque o modelo trata "não informado" como sinal de risco alto (`ml/modelagem.md`): deixar o campo em branco por descuido mudaria o resultado.
+
 Resposta `201`:
 
 ```json
 {
   "id": 15,
-  "probabilidade": 0.62,
+  "score": 0.87,
   "faixaRisco": "ALTO",
   "fatores": [
     {"atributo": "tipoGravidez", "descricao": "Gravidez dupla (gêmeos)", "efeito": "AUMENTA", "impacto": 0.41}
@@ -119,7 +121,7 @@ Resposta `201`:
 }
 ```
 
-`faixaRisco` é `BAIXO`, `MEDIO` ou `ALTO`. `efeito` é `AUMENTA` ou `REDUZ`. `descricao` é o texto mostrado ao usuário.
+`score` vai de 0 a 1 e **não é probabilidade** (o modelo não é calibrado): o front mostra a faixa e a pontuação, nunca um percentual de chance. `faixaRisco` é `BAIXO`, `MEDIO` ou `ALTO` e vem pronta do serviço do modelo, com os limites do `ml/artifacts/metadata.json`. `efeito` é `AUMENTA` ou `REDUZ` (o `direcao` do serviço do modelo). `descricao` é o texto mostrado ao usuário. O `impacto` só serve para ordenar os fatores e não é exibido.
 
 ### `POST /api/predicoes/{id}/revisao` (operador)
 

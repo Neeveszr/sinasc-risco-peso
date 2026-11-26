@@ -10,7 +10,7 @@ st.markdown(
     "nem data de nascimento.\n"
     "- **Sobre quem usa o sistema:** nome, e-mail e perfil da conta, além do registro de acessos (quem fez cada "
     "ação e quando).\n"
-    "- **Resultado de cada predição:** faixa de risco, probabilidade, principais fatores, versão do modelo, data e hora."
+    "- **Resultado de cada predição:** faixa de risco, pontuação do modelo, principais fatores, versão do modelo, data e hora."
 )
 
 st.subheader("Para que os dados são usados")

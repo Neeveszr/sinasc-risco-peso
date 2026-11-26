@@ -65,7 +65,7 @@ public class UsuarioService {
         usuario.setNome(dados.nome().trim());
         usuario.setEmail(novoEmail);
         usuario.setAtivo(dados.ativo());
-        if (dados.senha() != null && !dados.senha().isBlank()) {
+        if (dados.senha() != null) {
             usuario.setSenhaHash(passwordEncoder.encode(dados.senha()));
         }
         return repository.save(usuario);
