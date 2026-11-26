@@ -1,9 +1,8 @@
 # Documentação Técnica — Dados e Modelagem
+
 ## 1. Objetivo
 
 Desenvolver um modelo de classificação supervisionada para identificar padrões associados ao baixo peso ao nascer, utilizando atributos maternos e informações relacionadas ao pré-natal disponíveis na base SINASC.
-
-O modelo possui finalidade exclusivamente acadêmica e experimental, não sendo indicado para diagnóstico ou tomada de decisões clínicas.
 
 ## 2. Base de dados
 
@@ -225,19 +224,40 @@ A elevada quantidade de falsos positivos e a capacidade discriminatória limitad
 
 ## 12. Faixas experimentais de score
 
-As faixas foram definidas utilizando as predições out-of-fold do conjunto de treinamento.
+Após a revisão do Pull Request, foram investigadas novas configurações utilizando os percentis dos scores out-of-fold do conjunto de treinamento. A configuração anterior concentrava 60,93% dos registros na faixa ALTO, com 12,59% de positivos.
 
-| Faixa | Intervalo |
-|---|---|
-| BAIXO | Score inferior a 0,40 |
-| MEDIO | Score maior ou igual a 0,40 e inferior a 0,43 |
-| ALTO | Score maior ou igual a 0,43 |
+| Percentil superior | Registros na faixa ALTO | Proporção de positivos na faixa | Casos positivos capturados |
+|---|---:|---:|---:|
+| 80 | 20,01% | 19,61% | 38,01% |
+| 85 | 15,00% | 22,67% | 32,94% |
+| 90 | 10,00% | 28,29% | 27,41% |
 
-O limite de 0,40 foi selecionado considerando a distribuição dos registros entre as faixas baixa e moderada.
+Foi selecionado o percentil 85 como compromisso experimental entre concentração de positivos e quantidade de registros selecionados, em resposta à sugestão da revisão de concentrar aproximadamente 10% a 15% dos maiores scores na faixa ALTO. O percentil 50 foi adotado para separar BAIXO e MEDIO. Essa escolha não demonstra superioridade estatística ou adequação clínica.
 
-O limiar de classificação permanece igual a 0,43.
+### 12.1. Limites definidos
 
-As faixas não representam categorias clínicas validadas, e os scores não devem ser interpretados como probabilidades calibradas.
+| Faixa | Limite inferior (inclusivo) | Limite superior |
+|---|---:|---:|
+| BAIXO | 0,0 | 0,4495018644184755 (exclusivo) |
+| MEDIO | 0,4495018644184755 | 0,5042154221007533 (exclusivo) |
+| ALTO | 0,5042154221007533 | 1,0 (inclusivo) |
+
+Os limites devem ser utilizados com a precisão armazenada em `metadata.json`.
+
+### 12.2. Distribuição nas predições out-of-fold
+
+| Faixa | Registros | Casos positivos | Percentual da base | Proporção de positivos na faixa | Casos positivos capturados |
+|---|---:|---:|---:|---:|---:|
+| BAIXO | 48.261 | 3.446 | 49,95% | 7,14% | 34,55% |
+| MEDIO | 33.869 | 3.243 | 35,05% | 9,58% | 32,51% |
+| ALTO | 14.494 | 3.286 | 15,00% | 22,67% | 32,94% |
+| Total | 96.624 | 9.975 | 100,00% | 10,32% | 100,00% |
+
+O limiar de classificação binária permanece em 0,43. As faixas de apresentação não equivalem às classes binárias: um score de 0,44, por exemplo, corresponde à classe 1 e à faixa BAIXO. O recall de 73,98% no teste final não corresponde à captura de positivos pela faixa ALTO, que foi de 32,94% nas predições out-of-fold do treinamento.
+
+Os novos limites foram escolhidos sem utilizar o conjunto de teste. A distribuição das faixas em novos dados não é garantida; a avaliação dessas faixas no conjunto de teste ainda não foi apresentada.
+
+O score produzido pelo Random Forest balanceado não é uma probabilidade calibrada. As faixas são categorias experimentais relativas à distribuição de referência, sem validação clínica ou indicação para triagem.
 
 ## 13. Exportação dos artefatos
 
@@ -249,7 +269,7 @@ Os artefatos foram disponibilizados na pasta `ml/artifacts/`.
 | metadata.json | Configuração, métricas, versão e limitações |
 | input_schema.json | Contrato interno dos atributos de entrada |
 
-O arquivo Joblib possui aproximadamente 2,19 MB.
+O arquivo Joblib possui aproximadamente 2,19 MiB.
 
 O pipeline exportado foi carregado e testado novamente nos 24.156 registros de teste, apresentando scores numericamente equivalentes e classificações idênticas às do modelo original.
 
@@ -266,15 +286,16 @@ Resultado obtido:
 ```json
 {
     "versao_modelo": "1.0.0",
-    "score_experimental": 0.339087,
+    "score": 0.339087,
+    "score_calibrado": false,
     "classe_prevista": 0,
-    "faixa_experimental": "Baixo",
+    "faixa_experimental": "BAIXO",
     "threshold": 0.43,
     "finalidade": "Exclusivamente academica"
 }
 ```
 
-O teste foi concluído com sucesso.
+O teste atualizado foi concluído com sucesso, incluindo a validação dos metadados, dos limites exatos das faixas e dos atributos de entrada. Trata-se de um teste independente de inferência com um registro fictício, não de um teste completo da API.
 
 ## 15. Ambiente e dependências
 
@@ -286,10 +307,14 @@ O teste foi concluído com sucesso.
 | NumPy | 2.4.6 |
 | SciPy | 1.17.1 |
 | Joblib | 1.6.0 |
+| SHAP | 0.51.0 |
+| FastAPI | 0.165.0 |
+| Uvicorn | 0.54.0 |
+| Pydantic | 2.14.4 |
 
 As principais dependências do modelo foram fixadas no arquivo `ml/requirements.txt`.
 
-A compatibilidade das dependências instaladas foi verificada com `pip check`.
+A compatibilidade declarada das dependências instaladas foi verificada com `pip check`, sem conflitos reportados. As importações de SHAP, FastAPI, Uvicorn e Pydantic também foram executadas com sucesso. Isso não comprova o funcionamento integral da explicabilidade ou do serviço. Matplotlib e Jupyter permanecem sem versões fixadas.
 
 A instalação em um ambiente completamente novo ainda deverá ser validada antes do deploy.
 
@@ -298,13 +323,17 @@ A instalação em um ambiente completamente novo ainda deverá ser validada ante
 A partir da raiz do repositório, utilizando um ambiente virtual Python compatível, instalar as dependências:
 
 ```bash
+
 python -m pip install -r ml/requirements.txt
+
 ```
 
 Disponibilizar a base original em:
 
 ```text
+
 data/raw/DNRE2024.csv
+
 ```
 
 Executar os notebooks na seguinte ordem:
@@ -316,7 +345,9 @@ Executar os notebooks na seguinte ordem:
 Para testar o modelo exportado:
 
 ```bash
+
 python ml/tests/teste_inferencia.py
+
 ```
 
 O teste de inferência não necessita da base original.
@@ -335,7 +366,43 @@ As divergências relativas aos códigos ignorados, valores ausentes e regras de 
 
 A explicabilidade com SHAP, a implementação do serviço FastAPI e a consolidação do Model Card serão realizadas na etapa de avaliação e integração.
 
-## 18. Limitações
+### 17.1. Orientações de integração após revisão
+
+- Adotar o campo `score` em substituição a `probabilidade`, mediante alinhamento do contrato público entre IA, Backend e Frontend. Não apresentar o score como percentual de chance.
+- Consultar os limites de apresentação diretamente em `metadata.json` e utilizar as categorias BAIXO, MEDIO e ALTO.
+- Preservar o limiar binário de 0,43, independentemente das faixas.
+- Enviar `null` para faixa etária desconhecida. O código histórico `Ign` continua sendo tratado internamente pelo pipeline, mas não integra os valores aceitos no contrato de entrada atualizado.
+- Disponibilizar `ml/src` no caminho de importação Python antes de carregar o Joblib, permitindo localizar os módulos personalizados, como no teste independente.
+- Utilizar as versões fixadas em `ml/requirements.txt`.
+- Sinalizar a ausência de GRAVIDEZ e MESPRENAT na interface acadêmica e alinhar as regras de preenchimento com a API.
+
+A versão do modelo permanece 1.0.0, pois o pipeline serializado não foi alterado. A atualização do contrato público, a integração efetiva do serviço, a explicabilidade e a consolidação do Model Card dependem de alinhamento com os responsáveis.
+
+## 18. Análise de sensibilidade a valores ausentes
+
+Foi utilizado um registro fictício, omitindo individualmente cada um dos dez atributos e mantendo os demais inalterados. Os resultados mais relevantes foram:
+
+| Atributo ausente | Score original | Score alterado | Variação | Faixa original | Faixa alterada |
+|---|---:|---:|---:|---|---|
+| GRAVIDEZ | 0,339087 | 0,732275 | +0,393188 | BAIXO | ALTO |
+| MESPRENAT | 0,339087 | 0,525467 | +0,186380 | BAIXO | ALTO |
+
+Os demais oito atributos não provocaram alteração de faixa nesse registro fictício.
+
+### 18.1. Investigação no conjunto de treinamento
+
+| Atributo | Situação após limpeza | Registros | Casos positivos | Proporção de positivos |
+|---|---|---:|---:|---:|
+| GRAVIDEZ | Ausente | 8 | 2 | 25,00% |
+| GRAVIDEZ | Informado | 96.616 | 9.973 | 10,32% |
+| MESPRENAT | Ausente ou inválido | 811 | 225 | 27,74% |
+| MESPRENAT | Informado | 95.813 | 9.750 | 10,18% |
+
+GRAVIDEZ ausente é tratada como categoria Ignorado; MESPRENAT ausente ou inválido é tratado por imputação e pelo indicador MESPRENAT_AUSENTE. A baixa representatividade de GRAVIDEZ ausente (apenas oito registros) torna incerta a frequência observada e pode contribuir para a instabilidade nessa condição.
+
+Esses resultados são associações descritivas e não comprovam causalidade. O teste de sensibilidade com um único registro fictício não permite generalizar o comportamento. A ausência de informação não deve ser interpretada como maior risco real. Recomenda-se sinalizar dados ausentes na interface acadêmica e alinhar as regras de validação com a API.
+
+## 19. Limitações
 
 - Base restrita ao município de São Paulo em 2024.
 - Desbalanceamento da variável-alvo.
@@ -348,13 +415,18 @@ A explicabilidade com SHAP, a implementação do serviço FastAPI e a consolida�
 - Possíveis inconsistências nos registros históricos.
 - Diferenças entre os valores históricos utilizados no treinamento e os limites de validação da API.
 - Faixas experimentais sem validação clínica.
+- Distribuição das faixas por percentis não garantida em novos dados.
+- A faixa ALTO concentra apenas 32,94% dos positivos nas predições out-of-fold; esse indicador não equivale ao recall do classificador.
+- Sensibilidade à ausência de GRAVIDEZ e MESPRENAT demonstrada em um único registro fictício, sem avaliação agregada da estabilidade dos scores.
+- Poucos exemplos de GRAVIDEZ ausente no treinamento.
+- O score não deve ser apresentado como percentual de chance; o contrato público ainda precisa ser alinhado.
 
 O modelo não deve ser utilizado como ferramenta de diagnóstico, triagem clínica ou recomendação de condutas médicas.
 
-## 19. Conclusão
+## 20. Conclusão
 
 A etapa de dados e modelagem contemplou análise exploratória, definição da variável-alvo, prevenção de vazamento de dados, pré-processamento, treinamento, validação cruzada, balanceamento, otimização de hiperparâmetros, seleção do limiar e avaliação final.
 
 O Pipeline treinado foi exportado e validado para reutilização pelo serviço de IA.
 
-Os resultados demonstram a viabilidade técnica da integração dos componentes de Machine Learning ao sistema acadêmico, respeitando as limitações identificadas durante os experimentos.
+Os resultados demonstram a viabilidade técnica de reutilizar o pipeline no sistema acadêmico, respeitando as limitações identificadas durante os experimentos. Após a revisão do PR, foram redefinidas as faixas de apresentação, documentada a sensibilidade a valores ausentes, atualizados os metadados e o contrato interno e fixadas as dependências adicionais. O teste independente atualizado foi concluído com sucesso. A integração completa, a revisão do Model Card e a validação em ambiente novo permanecem pendentes.
