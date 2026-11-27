@@ -56,6 +56,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problema(HttpStatus.FORBIDDEN, "Acesso negado", "Seu perfil não tem permissão para esta operação");
     }
 
+    /** Serviço de IA fora do ar, com timeout ou com resposta fora do contrato: HTTP 503. */
+    @ExceptionHandler(ModeloIndisponivelException.class)
+    public ProblemDetail modeloIndisponivel(ModeloIndisponivelException ex) {
+        log.warn("Serviço de IA indisponível: {}", ex.getMessage());
+        return problema(HttpStatus.SERVICE_UNAVAILABLE, "Serviço de IA indisponível",
+                "O serviço de IA não está disponível no momento. Tente novamente em instantes.");
+    }
+
+    /** O serviço de IA rejeitou os dados (422 dele): devolve 422 no nosso formato, com os campos em camelCase. */
+    @ExceptionHandler(ModeloEntradaInvalidaException.class)
+    public ProblemDetail modeloRejeitouEntrada(ModeloEntradaInvalidaException ex) {
+        List<Map<String, String>> erros = ex.getErros().stream()
+                .map(e -> Map.of("campo", e.campo(), "mensagem", e.mensagem()))
+                .toList();
+        ProblemDetail pd = problema(HttpStatus.UNPROCESSABLE_ENTITY, "Dados rejeitados pelo modelo",
+                "O serviço de IA rejeitou os dados enviados");
+        pd.setProperty("erros", erros);
+        return pd;
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail inesperado(Exception ex) {
         log.error("Erro inesperado", ex);
