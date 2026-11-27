@@ -74,17 +74,22 @@ public class RegistroAnaliseService {
 
     @Transactional
     public RegistroAnalise atualizar(
-            Long id,
-            RegistroRequest dados,
-            AuthUser logado) {
+        Long id,
+        RegistroRequest dados,
+        AuthUser logado) {
 
-        RegistroAnalise registro = buscar(id, logado);
+    RegistroAnalise registro = buscar(id, logado);
 
-        validarPartos(dados);
-        preencherDados(registro, dados);
-
-        return registroRepository.save(registro);
+    if (predicaoRepository.existsByRegistroAnaliseId(id)) {
+        throw new ConflitoException(
+                "Não é possível atualizar um registro que possui predições associadas");
     }
+
+    validarPartos(dados);
+    preencherDados(registro, dados);
+
+    return registroRepository.save(registro);
+}
 
     @Transactional
     public void excluir(Long id, AuthUser logado) {
@@ -147,6 +152,6 @@ public class RegistroAnaliseService {
         registro.setPartosCesareos(dados.partosCesareos());
         registro.setFilhosVivos(dados.filhosVivos());
         registro.setPerdasFetais(dados.perdasFetais());
-        registro.setMesPreNatal(dados.mesPreNatal());
+        registro.setMesPreNatal(dados.mesInicioPrenatal());
     }
 }

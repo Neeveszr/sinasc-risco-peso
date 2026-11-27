@@ -70,7 +70,7 @@ public class RegistroAnaliseController {
 
     @Operation(summary = "Cria um registro de análise")
     @PostMapping
-    @PreAuthorize(Permissoes.QUALQUER_PERFIL)
+    @PreAuthorize(Permissoes.OPERADOR)
     public ResponseEntity<RegistroResponse> criar(
             @Valid @RequestBody RegistroRequest dados,
             @AuthenticationPrincipal AuthUser logado) {
@@ -93,7 +93,7 @@ public class RegistroAnaliseController {
 
     @Operation(summary = "Atualiza um registro de análise")
     @PutMapping("/{id}")
-    @PreAuthorize(Permissoes.QUALQUER_PERFIL)
+   @PreAuthorize(Permissoes.OPERADOR)
     public RegistroResponse atualizar(
             @PathVariable Long id,
             @Valid @RequestBody RegistroRequest dados,
@@ -112,7 +112,7 @@ public class RegistroAnaliseController {
 
     @Operation(summary = "Exclui um registro de análise")
     @DeleteMapping("/{id}")
-    @PreAuthorize(Permissoes.QUALQUER_PERFIL)
+  @PreAuthorize(Permissoes.OPERADOR)
     public ResponseEntity<Void> excluir(
             @PathVariable Long id,
             @AuthenticationPrincipal AuthUser logado) {

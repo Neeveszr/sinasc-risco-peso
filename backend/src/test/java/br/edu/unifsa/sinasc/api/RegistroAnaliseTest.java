@@ -22,7 +22,7 @@ class RegistroAnaliseTest extends ApiTestBase {
                 "partosCesareos": 0,
                 "filhosVivos": 1,
                 "perdasFetais": 0,
-                "mesPreNatal": 2
+                "mesInicioPrenatal": 2
             }
             """;
 
@@ -51,7 +51,8 @@ class RegistroAnaliseTest extends ApiTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.faixaEtaria").value("25-29"))
-                .andExpect(jsonPath("$.gestacoesAnteriores").value(2));
+                .andExpect(jsonPath("$.gestacoesAnteriores").value(2))
+                .andExpect(jsonPath("$.mesInicioPrenatal").value(2));
     }
 
     @Test
@@ -121,6 +122,18 @@ class RegistroAnaliseTest extends ApiTestBase {
                 .content(registroInvalido))
                 .andExpect(status().isUnprocessableEntity());
     }
+
+@Test
+void gestorNaoConsegueCriarRegistro() throws Exception {
+    criarUsuario("gestor@teste.com", Perfil.GESTOR_AUDITOR);
+    String tokenGestor = token("gestor@teste.com", SENHA);
+
+    mockMvc.perform(post("/api/registros")
+            .header("Authorization", "Bearer " + tokenGestor)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(REGISTRO_VALIDO))
+            .andExpect(status().isForbidden());
+}
 
     @Test
     void requisicaoSemTokenRetorna401() throws Exception {
