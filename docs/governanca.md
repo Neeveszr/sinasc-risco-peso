@@ -175,8 +175,9 @@ Regras acordadas com o grupo:
 - Regra entre campos: partos normais + partos cesáreos <= gestações anteriores.
 
 Confirmado com a equipe de IA: no modelo da `main`, null, 99 e 10 em mês de início do
-pré-natal dão o mesmo score, e null e "Ign" na faixa etária também. Portanto, esses valores
-são tratados como ausentes, tanto na API quanto no modelo.
+pré-natal dão o mesmo score, e null e "Ign" na faixa etária também. A API não aceita esses
+códigos históricos (o ausente vai como null) e o modelo os trata exatamente como null, então
+treino e API ficam coerentes.
 
 A análise de qualidade (`analise_qualidade_2024.csv`) já segue o domínio da API, com "Ign" e
 99 tratados como ausentes. O treino usa a base bruta com o pipeline de IA.
@@ -197,7 +198,29 @@ controlador. Não são exigências legais fixas.
   Depois desse prazo, os registros identificáveis são excluídos de forma definitiva. Dados
   agregados e sem identificação podem ser mantidos para estatística.
 
-## 10. Limitações e pendências
+## 10. Texto para a tela de Privacidade
+
+Texto para o front, em linguagem simples. Os prazos marcados como propostos dependem da
+aprovação do grupo até 28/11 (seção 9).
+
+> Coletamos apenas os dados do pré-natal e do histórico obstétrico da gestante, usados para
+> estimar o risco de baixo peso ao nascer: idade, escolaridade, estado civil, tipo de gravidez,
+> mês de início do pré-natal e histórico de gestações, partos e perdas. Não pedimos nome nem
+> CPF no formulário.
+>
+> A finalidade é apoiar a equipe da UBS a priorizar o acompanhamento pré-natal. O resultado é
+> apoio à decisão e não substitui a avaliação clínica.
+>
+> O histórico das predições é guardado por 5 anos (proposta), e depois os registros
+> identificáveis são excluídos.
+>
+> Acessam os dados o operador, que vê apenas as próprias predições, e o gestor/auditor, que vê
+> o histórico geral e a auditoria, sem poder alterar os registros.
+>
+> Você pode pedir revisão humana de qualquer resultado pelo botão "Solicitar revisão humana".
+> O gestor responde em até 5 dias úteis (proposta).
+
+## 11. Limitações e pendências
 
 - O dicionário oficial não veio com a base. As descrições do catálogo seguem o layout
   padrão do SINASC e devem ser conferidas, sobretudo `RETROALIM` e `STDNNOVA`.
@@ -210,7 +233,7 @@ controlador. Não são exigências legais fixas.
 - Base de 2024: o modelo reflete o período de referência e precisa de atualização periódica.
 - O modelo não tem validação externa.
 
-## 11. Declaração de uso de IA generativa
+## 12. Declaração de uso de IA generativa
 
 Preencher no README do grupo: ferramenta usada, tarefa e revisão humana, conforme a
 Resolução nº 005/2026 (CONSUP) da UNIFSA.

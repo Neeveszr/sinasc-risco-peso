@@ -113,7 +113,7 @@ CATALOGO = [
     ("QTDPARTNOR", "Partos normais anteriores", "numérica", "Dado pessoal sensível (saúde)", "Confidencial", "Mantida: partos_normais_anteriores", "Mantida separada de QTDPARTCES, como o pipeline espera."),
     ("QTDPARTCES", "Partos cesáreos anteriores", "numérica", "Dado pessoal sensível (saúde)", "Confidencial", "Mantida: partos_cesareos_anteriores", "Mantida separada de QTDPARTNOR."),
     ("QTDFILVIVO", "Número de filhos vivos", "numérica", "Dado pessoal sensível (saúde)", "Confidencial", "Mantida: filhos_vivos", "Mantida como contagem."),
-    ("QTDFILMORT", "Número de filhos mortos", "numérica", "Dado pessoal sensível (saúde)", "Confidencial", "Mantida: filhos_mortos", "Mantida como contagem; atributo sensível, usado só no mínimo necessário."),
+    ("QTDFILMORT", "Número de perdas fetais anteriores", "numérica", "Dado pessoal sensível (saúde)", "Confidencial", "Mantida: filhos_mortos", "Mantida como contagem; atributo sensível, usado só no mínimo necessário."),
     ("SEMAGESTAC", "Semanas de gestação ao parto", "numérica", "Dado pessoal sensível (saúde)", "Confidencial", "Removida", "Só conhecida ao nascimento: vazamento temporal (preditor do próprio fenômeno)."),
     ("TPMETESTIM", "Método de estimativa da idade gestacional", "categórica", "Dado pessoal sensível (saúde)", "Confidencial", "Removida", "Registrado ao nascimento."),
     ("CONSPRENAT", "Número de consultas de pré-natal", "numérica", "Dado pessoal sensível (saúde)", "Confidencial", "Removida", "Consolidada só ao fim da gestação (vazamento parcial). Usada apenas na regra de consistência K3."),
