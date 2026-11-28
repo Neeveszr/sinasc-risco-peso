@@ -26,6 +26,7 @@ import org.springframework.web.client.RestClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.unifsa.sinasc.analise.FaixaRisco;
 import br.edu.unifsa.sinasc.exception.ModeloEntradaInvalidaException;
 import br.edu.unifsa.sinasc.exception.ModeloIndisponivelException;
 
@@ -40,7 +41,7 @@ class ModeloClientTest {
 
     private static final String RESPOSTA_NORMAL = """
             {
-              "probabilidade": 0.62,
+              "score": 0.62,
               "faixa_risco": "ALTO",
               "fatores": [
                 {"atributo": "GRAVIDEZ", "valor": 2, "impacto": 0.41, "direcao": "AUMENTA"},
@@ -71,7 +72,7 @@ class ModeloClientTest {
 
         ResultadoModelo resultado = cliente.prever(DADOS);
 
-        assertEquals(0.62, resultado.probabilidade(), 0.0001);
+        assertEquals(0.62, resultado.score(), 0.0001);
         assertEquals(FaixaRisco.ALTO, resultado.faixaRisco());
         assertEquals("0.0.0-mock", resultado.versaoModelo());
         assertEquals(3, resultado.fatores().size());
@@ -186,18 +187,40 @@ class ModeloClientTest {
     // ---------- resposta fora do contrato ----------
 
     @Test
+    void ausenciaDeScoreViraModeloIndisponivel() {
+        responderCom("""
+                {"faixa_risco": "MEDIO", "fatores": [], "versao_modelo": "1.0"}
+                """);
+
+        assertThrows(ModeloIndisponivelException.class, () -> cliente.prever(DADOS));
+    }
+
+    /** Enquanto o contrato (e o serviço) não trocam para "score", o nome antigo continua funcionando. */
+    @Test
+    void aindaAceitaONomeAntigoProbabilidadeComoScore() {
+        responderCom("""
+                {"probabilidade": 0.31, "faixa_risco": "ALTO", "fatores": [], "versao_modelo": "1.0"}
+                """);
+
+        ResultadoModelo resultado = cliente.prever(DADOS);
+
+        assertEquals(0.31, resultado.score(), 0.0001);
+        assertEquals(FaixaRisco.ALTO, resultado.faixaRisco());
+    }
+
+    @Test
     void faixaDeRiscoDesconhecidaViraModeloIndisponivel() {
         responderCom("""
-                {"probabilidade": 0.5, "faixa_risco": "CRITICO", "fatores": [], "versao_modelo": "1.0"}
+                {"score": 0.5, "faixa_risco": "CRITICO", "fatores": [], "versao_modelo": "1.0"}
                 """);
 
         assertThrows(ModeloIndisponivelException.class, () -> cliente.prever(DADOS));
     }
 
     @Test
-    void probabilidadeForaDeZeroAUmViraModeloIndisponivel() {
+    void scoreForaDeZeroAUmViraModeloIndisponivel() {
         responderCom("""
-                {"probabilidade": 1.5, "faixa_risco": "ALTO", "fatores": [], "versao_modelo": "1.0"}
+                {"score": 1.5, "faixa_risco": "ALTO", "fatores": [], "versao_modelo": "1.0"}
                 """);
 
         assertThrows(ModeloIndisponivelException.class, () -> cliente.prever(DADOS));
@@ -206,7 +229,7 @@ class ModeloClientTest {
     @Test
     void semVersaoDoModeloViraModeloIndisponivel() {
         responderCom("""
-                {"probabilidade": 0.5, "faixa_risco": "MEDIO", "fatores": []}
+                {"score": 0.5, "faixa_risco": "MEDIO", "fatores": []}
                 """);
 
         assertThrows(ModeloIndisponivelException.class, () -> cliente.prever(DADOS));
@@ -215,7 +238,7 @@ class ModeloClientTest {
     @Test
     void direcaoDeFatorDesconhecidaViraModeloIndisponivel() {
         responderCom("""
-                {"probabilidade": 0.5, "faixa_risco": "MEDIO", "versao_modelo": "1.0",
+                {"score": 0.5, "faixa_risco": "MEDIO", "versao_modelo": "1.0",
                  "fatores": [{"atributo": "GRAVIDEZ", "valor": 2, "impacto": 0.4, "direcao": "TALVEZ"}]}
                 """);
 
@@ -232,7 +255,7 @@ class ModeloClientTest {
     @Test
     void campoExtraNaRespostaEIgnoradoEFatoresAusentesViramListaVazia() {
         responderCom("""
-                {"probabilidade": 0.08, "faixa_risco": "BAIXO", "versao_modelo": "1.0", "campo_novo": "x"}
+                {"score": 0.08, "faixa_risco": "BAIXO", "versao_modelo": "1.0", "campo_novo": "x"}
                 """);
 
         ResultadoModelo resultado = cliente.prever(DADOS);

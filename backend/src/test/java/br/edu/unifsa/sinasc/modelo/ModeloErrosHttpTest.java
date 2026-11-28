@@ -67,13 +67,13 @@ class ModeloErrosHttpTest {
     @Test
     void respostaNormalDevolve200() throws Exception {
         servidor.expect(requestTo(URL_PREDICT)).andRespond(withSuccess("""
-                {"probabilidade": 0.62, "faixa_risco": "ALTO", "versao_modelo": "0.0.0-mock",
+                {"score": 0.62, "faixa_risco": "ALTO", "versao_modelo": "0.0.0-mock",
                  "fatores": [{"atributo": "GRAVIDEZ", "valor": 2, "impacto": 0.41, "direcao": "AUMENTA"}]}
                 """, MediaType.APPLICATION_JSON));
 
         mockMvc.perform(post("/teste/prever"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.probabilidade").value(0.62))
+                .andExpect(jsonPath("$.score").value(0.62))
                 .andExpect(jsonPath("$.faixaRisco").value("ALTO"))
                 .andExpect(jsonPath("$.versaoModelo").value("0.0.0-mock"))
                 .andExpect(jsonPath("$.fatores[0].campo").value("tipoGravidez"))

@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,12 +21,14 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.unifsa.sinasc.analise.FaixaRisco;
 import br.edu.unifsa.sinasc.exception.ModeloEntradaInvalidaException;
 import br.edu.unifsa.sinasc.exception.ModeloEntradaInvalidaException.ErroCampo;
 import br.edu.unifsa.sinasc.exception.ModeloIndisponivelException;
@@ -111,8 +114,8 @@ public class ModeloClient {
         if (r == null) {
             throw respostaInvalida("corpo vazio");
         }
-        if (r.probabilidade() == null || r.probabilidade() < 0 || r.probabilidade() > 1) {
-            throw respostaInvalida("probabilidade ausente ou fora de 0 a 1");
+        if (r.score() == null || r.score() < 0 || r.score() > 1) {
+            throw respostaInvalida("score ausente ou fora de 0 a 1");
         }
         if (r.versaoModelo() == null || r.versaoModelo().isBlank()) {
             throw respostaInvalida("versão do modelo ausente");
@@ -120,7 +123,7 @@ public class ModeloClient {
 
         FaixaRisco faixa;
         try {
-            faixa = FaixaRisco.de(r.faixaRisco());
+            faixa = faixaDe(r.faixaRisco());
         } catch (IllegalArgumentException e) {
             throw respostaInvalida("faixa de risco desconhecida");
         }
@@ -131,7 +134,7 @@ public class ModeloClient {
                 fatores.add(converterFator(f));
             }
         }
-        return new ResultadoModelo(r.probabilidade(), faixa, List.copyOf(fatores), r.versaoModelo());
+        return new ResultadoModelo(r.score(), faixa, List.copyOf(fatores), r.versaoModelo());
     }
 
     private static FatorExplicacao converterFator(FatorServico f) {
@@ -170,6 +173,14 @@ public class ModeloClient {
         return erros;
     }
 
+    /** Texto do contrato (BAIXO, MEDIO ou ALTO, sem acento) para o enum único FaixaRisco, do pacote analise. */
+    private static FaixaRisco faixaDe(String valor) {
+        if (valor == null) {
+            throw new IllegalArgumentException("faixa de risco ausente");
+        }
+        return FaixaRisco.valueOf(valor.trim().toUpperCase(Locale.ROOT));
+    }
+
     private static ModeloIndisponivelException respostaInvalida(String motivo) {
         return new ModeloIndisponivelException("Resposta inválida do serviço de IA: " + motivo);
     }
@@ -178,7 +189,8 @@ public class ModeloClient {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record RespostaServico(
-            Double probabilidade,
+            // o serviço passou a devolver "score"; "probabilidade" ainda é aceito até o contrato ser atualizado
+            @JsonAlias("probabilidade") Double score,
             @JsonProperty("faixa_risco") String faixaRisco,
             List<FatorServico> fatores,
             @JsonProperty("versao_modelo") String versaoModelo) {
