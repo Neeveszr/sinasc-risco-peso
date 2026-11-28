@@ -177,7 +177,7 @@ ResultadoModelo resultado = modeloClient.prever(dados);   // dados: DadosPredica
 
 - **Configuração:** `MODEL_SERVICE_URL` (padrão `http://localhost:8000`) e `MODEL_SERVICE_TIMEOUT` (segundos, padrão 10).
 - **Entrada (`DadosPredicao`):** campos em camelCase, como o front envia. O cliente converte para os nomes do SINASC e envia os 10 atributos, com `null` onde não há valor. A validação do contrato está no próprio record (`@Valid`), incluindo `partosNormais + partosCesareos <= gestacoesAnteriores`.
-- **Saída (`ResultadoModelo`):** `probabilidade` (0 a 1), `faixaRisco` (`BAIXO`, `MEDIO`, `ALTO`), `fatores` (os 3 principais) e `versaoModelo`. Cada fator traz `campo` (camelCase), `rotulo` (português), `valor`, `impacto` e `direcao` (`AUMENTA` ou `REDUZ`).
+- **Saída (`ResultadoModelo`):** `score` (de 0 a 1; não é uma probabilidade calibrada, não apresente como chance), `faixaRisco` (`BAIXO`, `MEDIO`, `ALTO`), `fatores` (os 3 principais) e `versaoModelo`. Cada fator traz `campo` (camelCase), `rotulo` (português), `valor`, `impacto` e `direcao` (`AUMENTA` ou `REDUZ`).
 - **Não mostre o `impacto` como percentual:** a unidade ainda é provisória. Use só para ordenar os fatores e, junto com a `direcao`, indicar o efeito.
 
 ### Erros do serviço de IA
