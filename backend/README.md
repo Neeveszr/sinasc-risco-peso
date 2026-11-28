@@ -166,3 +166,25 @@ Formato RFC 7807 (`application/problem+json`): `title`, `status`, `detail`. Falh
 ## Uso de IA generativa
 
 Registrar a ferramenta e a tarefa na seção 9 do [README](../README.md) da raiz.
+
+## Serviço de IA (`ModeloClient`)
+
+Cliente HTTP do serviço Python (FastAPI), `POST /predict`. Contrato em [`ml/contrato_predict.md`](../ml/contrato_predict.md) e [`governanca/saida/06_contrato_entrada_api.json`](../governanca/saida/06_contrato_entrada_api.json). Fica no pacote `modelo`.
+
+```java
+ResultadoModelo resultado = modeloClient.prever(dados);   // dados: DadosPredicao
+```
+
+- **Configuração:** `MODEL_SERVICE_URL` (padrão `http://localhost:8000`) e `MODEL_SERVICE_TIMEOUT` (segundos, padrão 10).
+- **Entrada (`DadosPredicao`):** campos em camelCase, como o front envia. O cliente converte para os nomes do SINASC e envia os 10 atributos, com `null` onde não há valor. A validação do contrato está no próprio record (`@Valid`), incluindo `partosNormais + partosCesareos <= gestacoesAnteriores`.
+- **Saída (`ResultadoModelo`):** `score` (de 0 a 1; não é uma probabilidade calibrada, não apresente como chance), `faixaRisco` (`BAIXO`, `MEDIO`, `ALTO`), `fatores` (os 3 principais) e `versaoModelo`. Cada fator traz `campo` (camelCase), `rotulo` (português), `valor`, `impacto` e `direcao` (`AUMENTA` ou `REDUZ`).
+- **Não mostre o `impacto` como percentual:** a unidade ainda é provisória. Use só para ordenar os fatores e, junto com a `direcao`, indicar o efeito.
+
+### Erros do serviço de IA
+
+| Situação | Exceção | Resposta da API |
+|---|---|---|
+| Fora do ar, conexão recusada, timeout, erro 5xx ou resposta fora do contrato | `ModeloIndisponivelException` | **503** no formato padrão |
+| O serviço rejeita os dados (422 dele) | `ModeloEntradaInvalidaException` | **422** no formato padrão, com `erros` (`campo` em camelCase e `mensagem`) |
+
+Os testes não precisam do serviço real: usam `MockRestServiceServer`.
